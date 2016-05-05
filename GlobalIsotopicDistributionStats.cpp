@@ -119,7 +119,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
     std::uniform_int_distribution<> dis_AA(0, AMINO_ACIDS.length()-1);
     std::uniform_int_distribution<> dis_S(0, AMINO_ACIDS_SULFUR.length()-1);
 
-    const int max_isotope = 6;
+    const int max_isotope = 9;
     int tot_sulfur = num_sulfurs + num_c_sulfurs;
     int tot_selenium = num_selenium + num_c_selenium;
 
@@ -134,7 +134,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
                                    //"CS" + std::to_string(num_c_sulfurs) + "_" +
                                    //"Se" + std::to_string(num_selenium) + "_" +
                                    //"CSe" + std::to_string(num_c_selenium) + ".tab";
-            outfiles[precursor_isotope][ratio_index] = std::ofstream(base_path + filename);
+            outfiles[precursor_isotope][ratio_index].open(base_path + filename);
 
             outfiles[precursor_isotope][ratio_index] << "ratio" << "\t" << "frag.mass" << "\t" << "precursor.mass" << std::endl;
 
