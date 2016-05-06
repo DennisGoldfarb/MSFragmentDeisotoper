@@ -94,3 +94,7 @@ std::vector<unsigned int> Peptide::get_y_ion_composition(int index, int charge) 
 	composition[elements::ELEMENTS::H] += charge;
 	return composition;
 }
+
+int Peptide::get_most_abundant_isotope() {
+	return std::distance(std::max_element(isotope_abundance.begin(), isotope_abundance.end()), isotope_abundance.begin());
+}

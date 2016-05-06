@@ -38,6 +38,7 @@ public:
 	virtual std::vector<unsigned int> get_composition(int charge) const;
 	std::vector<unsigned int> get_b_ion_composition(int index, int charge) const;
 	std::vector<unsigned int> get_y_ion_composition(int index, int charge) const;
+	int get_most_abundant_isotope();
 
 
 	double calc_monoisotopic_mass();

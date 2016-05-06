@@ -136,7 +136,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
                                    //"CSe" + std::to_string(num_c_selenium) + ".tab";
             outfiles[precursor_isotope][ratio_index].open(base_path + filename);
 
-            outfiles[precursor_isotope][ratio_index] << "ratio" << "\t" << "frag.mass" << "\t" << "precursor.mass" << std::endl;
+            outfiles[precursor_isotope][ratio_index] << "ratio" << "\tfrag.mass" << "\tprecursor.mass" << "\tfrag.a.mass" << "\tprecursor.a.mass" << std::endl;
 
         }
     }
@@ -144,7 +144,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
 
 
     for (int peptide_length = tot_selenium + tot_sulfur; peptide_length <= max_length; ++peptide_length) {
-        double SSe_factor = (tot_selenium+tot_sulfur)/5.0;
+        double SSe_factor = (tot_selenium+tot_sulfur)/2.5;
         int num_samples = std::pow(20,std::pow(peptide_length, std::min(1.0,(3.0+SSe_factor)/peptide_length) ));
 
         for (int sample = 0; sample < num_samples; ++sample) {
@@ -215,7 +215,8 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
 
                             double ratio = b_ion_isotope_abundances[fragment_isotope] / b_ion_isotope_abundances[fragment_isotope-1];
                             outfiles[precursor_isotope][ratio_index] << ratio << "\t" << b_ions[index].calc_monoisotopic_mass() << "\t" <<
-                            p.calc_monoisotopic_mass() << std::endl;
+                            p.calc_monoisotopic_mass() << "\t" << b_ions[index].isotope_mz[b_ions[index].get_most_abundant_isotope()] << "\t" <<
+                            p.isotope_mz[p.get_most_abundant_isotope()]  << std::endl;
 
                         }
 
@@ -223,7 +224,8 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
 
                             double ratio = y_ion_isotope_abundances[fragment_isotope] / y_ion_isotope_abundances[fragment_isotope-1];
                             outfiles[precursor_isotope][ratio_index] << ratio << "\t" << y_ions[index].calc_monoisotopic_mass() << "\t" <<
-                            p.calc_monoisotopic_mass() << std::endl;
+                            p.calc_monoisotopic_mass() << "\t" << y_ions[index].isotope_mz[y_ions[index].get_most_abundant_isotope()] << "\t" <<
+                            p.isotope_mz[p.get_most_abundant_isotope()]  << std::endl;
                         }
 
                     }

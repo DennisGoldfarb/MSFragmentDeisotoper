@@ -21,6 +21,7 @@ public:
     std::vector<unsigned int> get_composition() const;
     std::vector<unsigned int> get_composition(int charge) const;
     double calc_monoisotopic_mass();
+    int get_most_abundant_isotope();
 };
 
 

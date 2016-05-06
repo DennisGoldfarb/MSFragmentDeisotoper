@@ -35,3 +35,7 @@ double b_ion::calc_monoisotopic_mass() {
     }
     return monoisotopic_mass;
 }
+
+int b_ion::get_most_abundant_isotope() {
+    return std::distance(std::max_element(isotope_abundance.begin(), isotope_abundance.end()), isotope_abundance.begin());
+}
