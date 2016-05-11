@@ -9,6 +9,9 @@
 #include <algorithm>
 #include <string>
 #include <random>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include "Peptide.h"
 #include "b_ion.h"
@@ -139,14 +142,11 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
             outfiles[precursor_isotope][ratio_index].open(base_path + filename);
 
             outfiles[precursor_isotope][ratio_index] << "ratio" << "\tfrag.mass" << "\tprecursor.mass" << "\tfrag.a.mass" << "\tprecursor.a.mass" << std::endl;
-
         }
     }
 
-
-
     for (int peptide_length = tot_selenium + tot_sulfur; peptide_length <= max_length; ++peptide_length) {
-        double SSe_factor = (tot_selenium+tot_sulfur)/2.5;
+        double SSe_factor = (tot_selenium+tot_sulfur)/5;
         int num_samples = std::pow(20,std::pow(peptide_length, std::min(1.0,(3.0+SSe_factor)/peptide_length) ));
 
         for (int sample = 0; sample < num_samples; ++sample) {
@@ -261,6 +261,9 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
 int main(int argc, const char ** argv) {
     //get_precursor_isotopic_ratios(argv[1]);
     //get_fragment_isotopic_ratios(argv[1]);
+    struct rlimit rlp;
+    rlp.rlim_cur = 600;
+    setrlimit(RLIMIT_NOFILE, &rlp);
 
     sample_fragment_isotopic_ratios(argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
 
