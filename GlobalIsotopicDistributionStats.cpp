@@ -190,7 +190,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
 
 
 
-            for (int precursor_isotope = 0; precursor_isotope < max_isotope; ++precursor_isotope) {
+            for (int precursor_isotope = 0; precursor_isotope < max_isotope && precursor_isotope < p.isotope_abundance.size(); ++precursor_isotope) {
 
                 if (p.isotope_abundance[precursor_isotope] >= min_abundance) {
 

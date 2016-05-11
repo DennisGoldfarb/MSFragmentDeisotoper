@@ -27,7 +27,7 @@ public:
 
 	Peptide(std::string sequence, int charge) : sequence(sequence), charge(charge) {
 		mercury::mercury(isotope_mz, isotope_abundance, get_composition(), charge, 1e-30);
-		remove_low_probability_isotopes();
+		//remove_low_probability_isotopes();
 	}
 
 	const char& operator[](std::size_t i);
