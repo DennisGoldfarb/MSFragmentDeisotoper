@@ -141,7 +141,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
                                    //"CSe" + std::to_string(num_c_selenium) + ".tab";
             outfiles[precursor_isotope][ratio_index].open(base_path + filename);
 
-            outfiles[precursor_isotope][ratio_index] << "ratio" << "\tfrag.mass" << "\tprecursor.mass" << "\tfrag.a.mass" << "\tprecursor.a.mass" << std::endl;
+            outfiles[precursor_isotope][ratio_index] << "ratio" << "\tfrag.mass" << "\tprecursor.mass" << std::endl; //"\tfrag.a.mass" << "\tprecursor.a.mass" << std::endl;
         }
     }
 
