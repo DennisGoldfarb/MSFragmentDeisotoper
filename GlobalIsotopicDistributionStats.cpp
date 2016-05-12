@@ -226,9 +226,9 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
                                                b_ion_isotope_abundances[fragment_isotope - 1];
                                 outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
                                 b_ions[index].calc_monoisotopic_mass() << "\t" <<
-                                p.calc_monoisotopic_mass() << "\t" <<
-                                b_ions[index].isotope_mz[b_ions[index].get_most_abundant_isotope()] << "\t" <<
-                                p.isotope_mz[p.get_most_abundant_isotope()] << std::endl;
+                                p.calc_monoisotopic_mass() << std::endl; //"\t" <<
+                                //b_ions[index].isotope_mz[b_ions[index].get_most_abundant_isotope()] << "\t" <<
+                                //p.isotope_mz[p.get_most_abundant_isotope()] << std::endl;
                             }
 
                             if (y_s == num_sulfurs && y_se == num_selenium && b_s == num_c_sulfurs &&
@@ -238,9 +238,9 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
                                                y_ion_isotope_abundances[fragment_isotope - 1];
                                 outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
                                 y_ions[index].calc_monoisotopic_mass() << "\t" <<
-                                p.calc_monoisotopic_mass() << "\t" <<
-                                y_ions[index].isotope_mz[y_ions[index].get_most_abundant_isotope()] << "\t" <<
-                                p.isotope_mz[p.get_most_abundant_isotope()] << std::endl;
+                                p.calc_monoisotopic_mass() << std::endl; //"\t" <<
+                                //y_ions[index].isotope_mz[y_ions[index].get_most_abundant_isotope()] << "\t" <<
+                                //p.isotope_mz[p.get_most_abundant_isotope()] << std::endl;
                             }
 
                         }
