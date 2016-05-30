@@ -321,7 +321,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
     }
 }
 
-void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
+void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_samples, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
 
     std::ofstream outfiles[max_isotope][max_isotope-1];
 
@@ -338,7 +338,6 @@ void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int 
     int max_length = max_mass/100;
 
     for (int peptide_length = 0; peptide_length <= max_length; ++peptide_length) {
-        int num_samples = 200;//1+(60*(std::log10(peptide_length)));
 
         for (int sample = 0; sample < num_samples; ++sample) {
 
@@ -375,7 +374,7 @@ int main(int argc, const char ** argv) {
     rlp.rlim_cur = 600;
     setrlimit(RLIMIT_NOFILE, &rlp);
 
-    sample_fragment_isotopic_ratios(argv[1], atof(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
+    sample_fragment_isotopic_ratios(argv[1], atof(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
 
     return 0;
 }
