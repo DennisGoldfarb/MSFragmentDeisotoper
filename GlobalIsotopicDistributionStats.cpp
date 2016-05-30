@@ -22,6 +22,17 @@ static std::string AMINO_ACIDS = "ADEFGHIKLNPQRSTVWY";
 static std::string AMINO_ACIDS_SULFUR = "CM";
 static std::string AMINO_ACIDS_SELENIUM = "U";
 
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_int_distribution<> dis_AA(0, AMINO_ACIDS.length()-1);
+std::uniform_int_distribution<> dis_S(0, AMINO_ACIDS_SULFUR.length()-1);
+
+MolecularFormula waterloss("H2O1");
+MolecularFormula ammoniumloss("N1H3");
+
+double dynamic_range = 5000;
+const int max_isotope = 30;
+
 void get_precursor_isotopic_ratios(std::string path) {
     double limit = 1e-30;
     int max_isotopes = 7;
@@ -115,18 +126,202 @@ void get_fragment_isotopic_ratios(std::string path) {
 
 }
 
-void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
 
-    double dynamic_range = 5000;
-    const int max_isotope = 30;
+bool is_palindrome(std::string &s) {
+    return equal(s.begin(), s.begin() + s.size()/2, s.rbegin());
+}
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis_AA(0, AMINO_ACIDS.length()-1);
-    std::uniform_int_distribution<> dis_S(0, AMINO_ACIDS_SULFUR.length()-1);
+std::string create_random_peptide_sequence(int peptide_length, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
+    std::string random_peptide;
 
-    int tot_sulfur = num_sulfurs + num_c_sulfurs;
-    int tot_selenium = num_selenium + num_c_selenium;
+    // for insertion of sulfur containing amino acids in fragment
+    for (int i = 0; i < num_sulfurs; ++i) {
+        random_peptide.push_back(AMINO_ACIDS_SULFUR[dis_S(gen)]);
+    }
+
+    // for insertion of selenocysteines in fragment
+    for (int i = 0; i < num_selenium; ++i) {
+        random_peptide.push_back(AMINO_ACIDS_SELENIUM[0]);
+    }
+
+    // random amino acid insertion (non Sulfur and Selenium amino acids)
+    for (int aa_index = 0; aa_index < peptide_length; ++aa_index) {
+        random_peptide.push_back(AMINO_ACIDS[dis_AA(gen)]);
+    }
+
+    // for insertion of sulfur containing amino acids in fragment
+    for (int i = 0; i < num_c_sulfurs; ++i) {
+        random_peptide.push_back(AMINO_ACIDS_SULFUR[dis_S(gen)]);
+    }
+
+    // for insertion of selenocysteines in fragment
+    for (int i = 0; i < num_c_selenium; ++i) {
+        random_peptide.push_back(AMINO_ACIDS_SELENIUM[0]);
+    }
+
+
+    return random_peptide;
+}
+
+void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotope-1], int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
+    int num_fragments = p.length()-1;
+    int most_abundant_isotope_index = p.get_most_abundant_isotope();
+    double most_abundant_isotope_abundance = p.isotope_abundance[most_abundant_isotope_index];
+    double min_abundance = most_abundant_isotope_abundance/dynamic_range;
+
+    int tot_left_SSe = num_sulfurs + num_selenium;
+    int tot_right_SSe = num_c_sulfurs + num_c_selenium;
+
+    std::vector<b_ion> b_ions;
+    std::vector<y_ion> y_ions;
+
+    std::vector<b_ion> b_ions_waterloss;
+    std::vector<y_ion> y_ions_waterloss;
+
+    std::vector<b_ion> b_ions_ammoniumloss;
+    std::vector<y_ion> y_ions_ammoniumloss;
+
+
+    std::vector<int> b_s;
+    std::vector<int> b_se;
+    std::vector<int> y_s;
+    std::vector<int> y_se;
+
+    for (int i = 1; i <= num_fragments; ++i) {   // for each cleavage site
+        b_ions.push_back(b_ion(p.sequence.substr(0,i),0));
+        y_ions.push_back(y_ion(p.sequence.substr(i,p.length()),0));
+
+        b_ions_waterloss.push_back(b_ion(p.sequence.substr(0,i),0,waterloss));
+        y_ions_waterloss.push_back(y_ion(p.sequence.substr(i,p.length()),0,waterloss));
+
+        b_ions_ammoniumloss.push_back(b_ion(p.sequence.substr(0,i),0,ammoniumloss));
+        y_ions_ammoniumloss.push_back(y_ion(p.sequence.substr(i,p.length()),0,ammoniumloss));
+
+        b_s.push_back(b_ions[i-1].get_composition()[elements::ELEMENTS::S]);
+        b_se.push_back(b_ions[i-1].get_composition()[elements::ELEMENTS::Se]);
+
+        y_s.push_back(y_ions[i-1].get_composition()[elements::ELEMENTS::S]);
+        y_se.push_back(y_ions[i-1].get_composition()[elements::ELEMENTS::Se]);
+    }
+
+    for (int precursor_isotope = 0; precursor_isotope < max_isotope && precursor_isotope < p.isotope_abundance.size(); ++precursor_isotope) {
+
+        if (p.isotope_abundance[precursor_isotope] >= min_abundance) {
+
+            for (int index = tot_left_SSe; index < num_fragments-tot_right_SSe; ++index) {
+                std::vector<double> b_ion_isotope_abundances(precursor_isotope + 1);
+                std::vector<double> y_ion_isotope_abundances(precursor_isotope + 1);
+
+                std::vector<double> b_ion_waterloss_isotope_abundances(precursor_isotope + 1);
+                std::vector<double> y_ion_waterloss_isotope_abundances(precursor_isotope + 1);
+
+                std::vector<double> b_ion_ammoniumloss_isotope_abundances(precursor_isotope + 1);
+                std::vector<double> y_ion_ammoniumloss_isotope_abundances(precursor_isotope + 1);
+
+                for (int fragment_isotope = 0;
+                     fragment_isotope <= precursor_isotope; ++fragment_isotope) { // for each fragment isotope
+                    unsigned int comp_isotope = precursor_isotope - fragment_isotope;
+
+                    double fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
+                                                        y_ions[index].isotope_abundance[comp_isotope];
+
+                    b_ion_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
+                    y_ion_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
+
+                    // b-ion water loss
+                    fragment_isotope_abundance = b_ions_waterloss[index].isotope_abundance[fragment_isotope] *
+                                                        y_ions[index].isotope_abundance[comp_isotope];
+
+                    b_ion_waterloss_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
+
+                    // b-ion ammonium loss
+                    fragment_isotope_abundance = b_ions_ammoniumloss[index].isotope_abundance[fragment_isotope] *
+                                                 y_ions[index].isotope_abundance[comp_isotope];
+
+                    b_ion_ammoniumloss_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
+
+                    // y-ion water loss
+                    fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
+                                                 y_ions_waterloss[index].isotope_abundance[comp_isotope];
+
+                    y_ion_waterloss_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
+
+                    // y-ion ammonium loss
+                    fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
+                                                 y_ions_ammoniumloss[index].isotope_abundance[comp_isotope];
+
+                    y_ion_ammoniumloss_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
+
+                }
+
+
+                for (int fragment_isotope = 1; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
+                    // write to appropriate file: precursor isotope, fragment isotope
+                    // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
+                    int ratio_index = fragment_isotope - 1;
+
+                    if (b_s[index] == num_sulfurs && b_se[index] == num_selenium && y_s[index] == num_c_sulfurs &&
+                        y_se[index] == num_c_selenium) {
+
+                        double ratio = std::log2(b_ion_isotope_abundances[fragment_isotope]) - std::log2(b_ion_isotope_abundances[fragment_isotope - 1]);
+                        if (!isnan(ratio) && !isinf(ratio)) {
+                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                            b_ions[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() <<
+                            std::endl;
+                        }
+
+                        ratio = std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope]) -
+                                std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
+                        if (!isnan(ratio) && !isinf(ratio)) {
+                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                            b_ions_waterloss[index].calc_monoisotopic_mass() << "\t" <<
+                            p.calc_monoisotopic_mass() <<
+                            std::endl;
+                        }
+
+                        ratio = std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope]) -
+                                std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
+                        if (!isnan(ratio) && !isinf(ratio)) {
+                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                            b_ions_ammoniumloss[index].calc_monoisotopic_mass() << "\t" <<
+                            p.calc_monoisotopic_mass() <<
+                            std::endl;
+                        }
+
+
+                    }
+
+                    if (y_s[index] == num_sulfurs && y_se[index] == num_selenium && b_s[index] == num_c_sulfurs &&
+                        b_se[index] == num_c_selenium) {
+
+                        double ratio = std::log2(y_ion_isotope_abundances[fragment_isotope]) - std::log2(y_ion_isotope_abundances[fragment_isotope - 1]);
+                        if (!isnan(ratio) && !isinf(ratio)) {
+                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                            y_ions[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() << std::endl;
+                        }
+
+                        ratio = std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope]) - std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
+                        if (!isnan(std::log2(ratio)) && !isinf(std::log2(ratio))) {
+                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                            y_ions_waterloss[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() <<
+                            std::endl;
+                        }
+
+                        ratio = std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope]) - std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
+                        if (!isnan(std::log2(ratio)) && !isinf(std::log2(ratio))) {
+                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                            y_ions_ammoniumloss[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() <<
+                            std::endl;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
 
     std::ofstream outfiles[max_isotope][max_isotope-1];
 
@@ -134,117 +329,32 @@ void sample_fragment_isotopic_ratios(std::string base_path, int max_length, int 
         for (int ratio_index = 0; ratio_index < precursor_isotope; ++ratio_index) {
             std::string filename = "Precursor" + std::to_string(precursor_isotope) + "_" +
                                    "Ratio" + std::to_string(ratio_index) + ".tab";
-                                   //"Ratio" + std::to_string(ratio_index) + "_" +
-                                   //"S" + std::to_string(num_sulfurs) + "_" +
-                                   //"CS" + std::to_string(num_c_sulfurs) + "_" +
-                                   //"Se" + std::to_string(num_selenium) + "_" +
-                                   //"CSe" + std::to_string(num_c_selenium) + ".tab";
             outfiles[precursor_isotope][ratio_index].open(base_path + filename);
 
             outfiles[precursor_isotope][ratio_index] << "ratio" << "\tfrag.mass" << "\tprecursor.mass" << std::endl; //"\tfrag.a.mass" << "\tprecursor.a.mass" << std::endl;
         }
     }
 
-    for (int peptide_length = tot_selenium + tot_sulfur; peptide_length <= max_length; ++peptide_length) {
-        double SSe_factor = (tot_selenium+tot_sulfur)/5;
-        int num_samples = std::pow(20,std::pow(peptide_length, std::min(1.0,(3.0+SSe_factor)/peptide_length) ));
+    int max_length = max_mass/100;
+
+    for (int peptide_length = 0; peptide_length <= max_length; ++peptide_length) {
+        int num_samples = 200;//1+(60*(std::log10(peptide_length)));
 
         for (int sample = 0; sample < num_samples; ++sample) {
-            std::string random_peptide;
-            int positions[peptide_length];
-
-            for (int aa_index = 0; aa_index < peptide_length; ++aa_index) {
-                random_peptide.push_back(AMINO_ACIDS[dis_AA(gen)]);
-                positions[aa_index] = aa_index;
-            }
-
-            // for random insertion of sulfur and selenium containing amino acids
-            if (tot_sulfur + tot_selenium + num_c_sulfurs> 0) {
-                std::random_shuffle(positions, positions + peptide_length);
-
-                for (int pos_index = 0; pos_index < tot_sulfur; ++pos_index) {
-                    random_peptide[positions[pos_index]] = AMINO_ACIDS_SULFUR[dis_S(gen)];
-                }
-
-                for (int pos_index = tot_sulfur; pos_index < tot_sulfur + tot_selenium; ++pos_index) {
-                    random_peptide[positions[pos_index]] = AMINO_ACIDS_SELENIUM[0];
-                }
-            }
 
 
+            std::string random_sequence = create_random_peptide_sequence(peptide_length, num_sulfurs, num_c_sulfurs,
+                                                                         num_selenium, num_c_selenium);
 
-            Peptide p = Peptide(random_peptide, 0);
-            int num_fragments = p.length()-1;
-            int most_abundant_isotope_index = p.get_most_abundant_isotope();
-            double most_abundant_isotope_abundance = p.isotope_abundance[most_abundant_isotope_index];
-            double min_abundance = most_abundant_isotope_abundance/dynamic_range;
+            Peptide p = Peptide(random_sequence, 0);
+            if (p.calc_monoisotopic_mass() <= max_mass) {
 
+                create_fragments(p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium);
 
-            std::vector<b_ion> b_ions;
-            std::vector<y_ion> y_ions;
-            for (int i = 1; i <= num_fragments; ++i) {   // for each cleavage site
-                b_ions.push_back(b_ion(p.sequence.substr(0,i),0));
-                y_ions.push_back(y_ion(p.sequence.substr(i,p.length()),0));
-            }
-
-
-
-
-            for (int precursor_isotope = 0; precursor_isotope < max_isotope && precursor_isotope < p.isotope_abundance.size(); ++precursor_isotope) {
-
-                if (p.isotope_abundance[precursor_isotope] >= min_abundance) {
-
-                    for (int index = 0; index < num_fragments; ++index) {
-                        std::vector<double> b_ion_isotope_abundances(precursor_isotope + 1);
-                        std::vector<double> y_ion_isotope_abundances(precursor_isotope + 1);
-
-                        for (int fragment_isotope = 0;
-                             fragment_isotope <= precursor_isotope; ++fragment_isotope) { // for each fragment isotope
-                            unsigned int comp_isotope = precursor_isotope - fragment_isotope;
-                            double fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
-                                                                y_ions[index].isotope_abundance[comp_isotope];
-
-                            b_ion_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
-                            y_ion_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
-                        }
-
-
-                        for (int fragment_isotope = 1; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
-                            // write to appropriate file: precursor isotope, fragment isotope
-                            // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
-                            int b_s = b_ions[index].get_composition()[elements::ELEMENTS::S];
-                            int b_se = b_ions[index].get_composition()[elements::ELEMENTS::Se];
-                            int y_s = y_ions[index].get_composition()[elements::ELEMENTS::S];
-                            int y_se = y_ions[index].get_composition()[elements::ELEMENTS::Se];
-
-                            int ratio_index = fragment_isotope - 1;
-
-                            if (b_s == num_sulfurs && b_se == num_selenium && y_s == num_c_sulfurs &&
-                                y_se == num_c_selenium) {
-
-                                double ratio = b_ion_isotope_abundances[fragment_isotope] /
-                                               b_ion_isotope_abundances[fragment_isotope - 1];
-                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                                b_ions[index].calc_monoisotopic_mass() << "\t" <<
-                                p.calc_monoisotopic_mass() << std::endl; //"\t" <<
-                                //b_ions[index].isotope_mz[b_ions[index].get_most_abundant_isotope()] << "\t" <<
-                                //p.isotope_mz[p.get_most_abundant_isotope()] << std::endl;
-                            }
-
-                            if (y_s == num_sulfurs && y_se == num_selenium && b_s == num_c_sulfurs &&
-                                b_se == num_c_selenium) {
-
-                                double ratio = y_ion_isotope_abundances[fragment_isotope] /
-                                               y_ion_isotope_abundances[fragment_isotope - 1];
-                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                                y_ions[index].calc_monoisotopic_mass() << "\t" <<
-                                p.calc_monoisotopic_mass() << std::endl; //"\t" <<
-                                //y_ions[index].isotope_mz[y_ions[index].get_most_abundant_isotope()] << "\t" <<
-                                //p.isotope_mz[p.get_most_abundant_isotope()] << std::endl;
-                            }
-
-                        }
-                    }
+                if (!is_palindrome(random_sequence)) {
+                    std::reverse(random_sequence.begin(), random_sequence.end());
+                    Peptide reverse_p = Peptide(random_sequence, 0);
+                    create_fragments(reverse_p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium);
                 }
             }
         }
@@ -265,7 +375,7 @@ int main(int argc, const char ** argv) {
     rlp.rlim_cur = 600;
     setrlimit(RLIMIT_NOFILE, &rlp);
 
-    sample_fragment_isotopic_ratios(argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
+    sample_fragment_isotopic_ratios(argv[1], atof(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
 
     return 0;
 }

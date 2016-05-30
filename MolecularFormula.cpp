@@ -127,3 +127,25 @@ double MolecularFormula::get_monoisotopic_mass() {
 double MolecularFormula::get_average_mass() {
 	return 0;
 }
+
+MolecularFormula operator-(const MolecularFormula &lhs, const MolecularFormula &rhs) {
+	MolecularFormula result;
+
+	for (std::pair<int, int> pair : lhs.element2count) {
+		result.element2count.insert(pair);
+	}
+
+	for (std::pair<const SubatomicParticle *, int> pair : lhs.particle2count) {
+		result.particle2count.insert(pair);
+	}
+
+	for (std::pair<int, int> pair : rhs.element2count) {
+		result.element2count[pair.first] -= pair.second;
+	}
+
+	for (std::pair<const SubatomicParticle *, int> pair : rhs.particle2count) {
+		result.particle2count[pair.first] -= pair.second;
+	}
+
+	return result;
+}

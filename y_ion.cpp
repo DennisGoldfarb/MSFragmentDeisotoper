@@ -15,8 +15,12 @@ std::vector<unsigned int> y_ion::get_composition() const {
         }
     }
 
-    composition[elements::ELEMENTS::H] += 1;
+    composition[elements::ELEMENTS::H] += 3;
     composition[elements::ELEMENTS::O] += 1;
+
+    for (std::pair<int, int> pair : loss.element2count) {
+        composition[pair.first] -= pair.second;
+    }
 
     return composition;
 }

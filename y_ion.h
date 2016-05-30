@@ -18,10 +18,15 @@ public:
         mercury::mercury(isotope_mz, isotope_abundance, get_composition(), charge, 1e-30);
     }
 
+    y_ion(std::string sequence, int charge, MolecularFormula loss) : Peptide(sequence, charge, true), loss(loss) {
+            mercury::mercury(isotope_mz, isotope_abundance, get_composition(), charge, 1e-30);
+    }
+
     std::vector<unsigned int> get_composition() const;
     std::vector<unsigned int> get_composition(int charge) const;
     double calc_monoisotopic_mass();
     int get_most_abundant_isotope();
+    MolecularFormula loss;
 };
 
 

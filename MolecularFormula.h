@@ -32,6 +32,8 @@ public:
 
 	std::map<int, int> element2count;
 	std::map<const SubatomicParticle *, int> particle2count;
+
+	friend MolecularFormula operator-(const MolecularFormula &mf1, const MolecularFormula &mf2);
 };
 
 

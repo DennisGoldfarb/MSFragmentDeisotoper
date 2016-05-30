@@ -17,6 +17,10 @@ std::vector<unsigned int> b_ion::get_composition() const {
 
     composition[elements::ELEMENTS::H] += 1;
 
+    for (std::pair<int, int> pair : loss.element2count) {
+        composition[pair.first] -= pair.second;
+    }
+
     return composition;
 }
 
