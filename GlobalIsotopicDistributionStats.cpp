@@ -254,64 +254,107 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
 
                 }
 
+                // calculate minimum abundance for this fragment
+                double min_abundance_b = *std::max_element(b_ion_isotope_abundances.begin(), b_ion_isotope_abundances.end())/dynamic_range;
+                double min_abundance_y = *std::max_element(y_ion_isotope_abundances.begin(), y_ion_isotope_abundances.end())/dynamic_range;
+                double min_abundance_b_waterloss = *std::max_element(b_ion_waterloss_isotope_abundances.begin(), b_ion_waterloss_isotope_abundances.end())/dynamic_range;
+                double min_abundance_y_waterloss = *std::max_element(y_ion_waterloss_isotope_abundances.begin(), y_ion_waterloss_isotope_abundances.end())/dynamic_range;
+                double min_abundance_b_ammoniumloss = *std::max_element(b_ion_ammoniumloss_isotope_abundances.begin(), b_ion_ammoniumloss_isotope_abundances.end())/dynamic_range;
+                double min_abundance_y_ammoniumloss = *std::max_element(y_ion_ammoniumloss_isotope_abundances.begin(), y_ion_ammoniumloss_isotope_abundances.end())/dynamic_range;
 
                 for (int fragment_isotope = 1; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
                     // write to appropriate file: precursor isotope, fragment isotope
                     // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
                     int ratio_index = fragment_isotope - 1;
 
+                    // check that both isotopes are greater than the minimum abundance
+
                     if (b_s[index] == num_sulfurs && b_se[index] == num_selenium && y_s[index] == num_c_sulfurs &&
                         y_se[index] == num_c_selenium) {
 
-                        double ratio = std::log2(b_ion_isotope_abundances[fragment_isotope]) - std::log2(b_ion_isotope_abundances[fragment_isotope - 1]);
-                        if (!isnan(ratio) && !isinf(ratio)) {
-                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                            b_ions[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() <<
-                            std::endl;
+                        if (b_ion_isotope_abundances[fragment_isotope] > min_abundance_b &&
+                            b_ion_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+
+                            double ratio = std::log2(b_ion_isotope_abundances[fragment_isotope]) -
+                                           std::log2(b_ion_isotope_abundances[fragment_isotope - 1]);
+                            if (!isnan(ratio) && !isinf(ratio)) {
+                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                                                                         b_ions[index].calc_monoisotopic_mass() << "\t"
+                                                                         << p.calc_monoisotopic_mass() <<
+                                                                         std::endl;
+                            }
                         }
 
-                        ratio = std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope]) -
-                                std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
-                        if (!isnan(ratio) && !isinf(ratio)) {
-                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                            b_ions_waterloss[index].calc_monoisotopic_mass() << "\t" <<
-                            p.calc_monoisotopic_mass() <<
-                            std::endl;
+                        if (b_ion_waterloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
+                                b_ion_waterloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+
+                            double ratio = std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope]) -
+                                           std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
+                            if (!isnan(ratio) && !isinf(ratio)) {
+                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                                                                         b_ions_waterloss[index].calc_monoisotopic_mass()
+                                                                         << "\t" <<
+                                                                         p.calc_monoisotopic_mass() <<
+                                                                         std::endl;
+                            }
+
                         }
 
-                        ratio = std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope]) -
-                                std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
-                        if (!isnan(ratio) && !isinf(ratio)) {
-                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                            b_ions_ammoniumloss[index].calc_monoisotopic_mass() << "\t" <<
-                            p.calc_monoisotopic_mass() <<
-                            std::endl;
-                        }
+                        if (b_ion_ammoniumloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
+                                b_ion_ammoniumloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
 
+                            double ratio = std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope]) -
+                                           std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
+                            if (!isnan(ratio) && !isinf(ratio)) {
+                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                                                                         b_ions_ammoniumloss[index].calc_monoisotopic_mass()
+                                                                         << "\t" <<
+                                                                         p.calc_monoisotopic_mass() <<
+                                                                         std::endl;
+                            }
+                        }
 
                     }
 
                     if (y_s[index] == num_sulfurs && y_se[index] == num_selenium && b_s[index] == num_c_sulfurs &&
                         b_se[index] == num_c_selenium) {
 
-                        double ratio = std::log2(y_ion_isotope_abundances[fragment_isotope]) - std::log2(y_ion_isotope_abundances[fragment_isotope - 1]);
-                        if (!isnan(ratio) && !isinf(ratio)) {
-                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                            y_ions[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() << std::endl;
+                        if (y_ion_isotope_abundances[fragment_isotope] > min_abundance_b &&
+                            y_ion_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+
+                            double ratio = std::log2(y_ion_isotope_abundances[fragment_isotope]) -
+                                           std::log2(y_ion_isotope_abundances[fragment_isotope - 1]);
+                            if (!isnan(ratio) && !isinf(ratio)) {
+                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                                                                         y_ions[index].calc_monoisotopic_mass() << "\t"
+                                                                         << p.calc_monoisotopic_mass() << std::endl;
+                            }
                         }
 
-                        ratio = std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope]) - std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
-                        if (!isnan(std::log2(ratio)) && !isinf(std::log2(ratio))) {
-                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                            y_ions_waterloss[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() <<
-                            std::endl;
+                        if (y_ion_waterloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
+                                y_ion_waterloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+
+                            double ratio = std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope]) -
+                                           std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
+                            if (!isnan(std::log2(ratio)) && !isinf(std::log2(ratio))) {
+                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                                                                         y_ions_waterloss[index].calc_monoisotopic_mass()
+                                                                         << "\t" << p.calc_monoisotopic_mass() <<
+                                                                         std::endl;
+                            }
                         }
 
-                        ratio = std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope]) - std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
-                        if (!isnan(std::log2(ratio)) && !isinf(std::log2(ratio))) {
-                            outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                            y_ions_ammoniumloss[index].calc_monoisotopic_mass() << "\t" << p.calc_monoisotopic_mass() <<
-                            std::endl;
+                        if (y_ion_ammoniumloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
+                                y_ion_ammoniumloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+
+                            double ratio = std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope]) -
+                                           std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
+                            if (!isnan(std::log2(ratio)) && !isinf(std::log2(ratio))) {
+                                outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
+                                                                         y_ions_ammoniumloss[index].calc_monoisotopic_mass()
+                                                                         << "\t" << p.calc_monoisotopic_mass() <<
+                                                                         std::endl;
+                            }
                         }
                     }
 
