@@ -43,3 +43,8 @@ double b_ion::calc_monoisotopic_mass() {
 int b_ion::get_most_abundant_isotope() {
     return std::distance(std::max_element(isotope_abundance.begin(), isotope_abundance.end()), isotope_abundance.begin());
 }
+
+int b_ion::get_max_isotope() {
+    std::vector<unsigned int> composition = get_composition();
+    return composition[0] + composition[1] + composition[2] + 2*composition[3] + 3*composition[4];
+}

@@ -267,13 +267,16 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                     // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
                     int ratio_index = fragment_isotope - 1;
 
-                    // check that both isotopes are greater than the minimum abundance
+
 
                     if (b_s[index] == num_sulfurs && b_se[index] == num_selenium && y_s[index] == num_c_sulfurs &&
                         y_se[index] == num_c_selenium) {
 
+                        // check that both isotopes are greater than the minimum abundance
+                        // check that both can have the number of isotopes
                         if (b_ion_isotope_abundances[fragment_isotope] > min_abundance_b &&
-                            b_ion_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+                            b_ion_isotope_abundances[fragment_isotope-1] > min_abundance_b &&
+                                b_ions[index].get_max_isotope() >= fragment_isotope) {
 
                             double ratio = std::log2(b_ion_isotope_abundances[fragment_isotope]) -
                                            std::log2(b_ion_isotope_abundances[fragment_isotope - 1]);
@@ -286,7 +289,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                         }
 
                         if (b_ion_waterloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
-                                b_ion_waterloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+                                b_ion_waterloss_isotope_abundances[fragment_isotope-1] > min_abundance_b &&
+                                b_ions_waterloss[index].get_max_isotope() >= fragment_isotope) {
 
                             double ratio = std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope]) -
                                            std::log2(b_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
@@ -301,7 +305,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                         }
 
                         if (b_ion_ammoniumloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
-                                b_ion_ammoniumloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+                                b_ion_ammoniumloss_isotope_abundances[fragment_isotope-1] > min_abundance_b &&
+                                b_ions_ammoniumloss[index].get_max_isotope() >= fragment_isotope) {
 
                             double ratio = std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope]) -
                                            std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
@@ -320,7 +325,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                         b_se[index] == num_c_selenium) {
 
                         if (y_ion_isotope_abundances[fragment_isotope] > min_abundance_b &&
-                            y_ion_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+                            y_ion_isotope_abundances[fragment_isotope-1] > min_abundance_b &&
+                            y_ions[index].get_max_isotope() >= fragment_isotope) {
 
                             double ratio = std::log2(y_ion_isotope_abundances[fragment_isotope]) -
                                            std::log2(y_ion_isotope_abundances[fragment_isotope - 1]);
@@ -332,7 +338,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                         }
 
                         if (y_ion_waterloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
-                                y_ion_waterloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+                                y_ion_waterloss_isotope_abundances[fragment_isotope-1] > min_abundance_b &&
+                                y_ions_waterloss[index].get_max_isotope() >= fragment_isotope) {
 
                             double ratio = std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope]) -
                                            std::log2(y_ion_waterloss_isotope_abundances[fragment_isotope - 1]);
@@ -345,7 +352,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                         }
 
                         if (y_ion_ammoniumloss_isotope_abundances[fragment_isotope] > min_abundance_b &&
-                                y_ion_ammoniumloss_isotope_abundances[fragment_isotope-1] > min_abundance_b) {
+                                y_ion_ammoniumloss_isotope_abundances[fragment_isotope-1] > min_abundance_b &&
+                                y_ions_ammoniumloss[index].get_max_isotope() >= fragment_isotope) {
 
                             double ratio = std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope]) -
                                            std::log2(y_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
