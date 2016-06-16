@@ -417,7 +417,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int 
                                                                          num_selenium, num_c_selenium);
 
             Peptide p = Peptide(random_sequence, 0);
-            if (p.calc_monoisotopic_mass() <= max_mass && p.calc_monoisotopic_mass() >= 6500) {
+            if (p.calc_monoisotopic_mass() <= max_mass) {
 
                 create_fragments(p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium);
 
