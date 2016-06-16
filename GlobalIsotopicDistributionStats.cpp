@@ -222,33 +222,49 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                      fragment_isotope <= precursor_isotope; ++fragment_isotope) { // for each fragment isotope
                     unsigned int comp_isotope = precursor_isotope - fragment_isotope;
 
-                    double fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
-                                                        y_ions[index].isotope_abundance[comp_isotope];
+                    double fragment_isotope_abundance = 0;
+
+                    if (b_ions[index].isotope_abundance.size() > fragment_isotope && y_ions[index].isotope_abundance.size() > comp_isotope) {
+                        fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
+                                                     y_ions[index].isotope_abundance[comp_isotope];
+                    }
 
                     b_ion_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
                     y_ion_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
 
                     // b-ion water loss
-                    fragment_isotope_abundance = b_ions_waterloss[index].isotope_abundance[fragment_isotope] *
-                                                        y_ions[index].isotope_abundance[comp_isotope];
+                    fragment_isotope_abundance = 0;
+                    if (b_ions_waterloss[index].isotope_abundance.size() > fragment_isotope && y_ions[index].isotope_abundance.size() > comp_isotope) {
+                        fragment_isotope_abundance = b_ions_waterloss[index].isotope_abundance[fragment_isotope] *
+                                                     y_ions[index].isotope_abundance[comp_isotope];
+                    }
 
                     b_ion_waterloss_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
 
                     // b-ion ammonium loss
-                    fragment_isotope_abundance = b_ions_ammoniumloss[index].isotope_abundance[fragment_isotope] *
-                                                 y_ions[index].isotope_abundance[comp_isotope];
+                    fragment_isotope_abundance = 0;
+                    if (b_ions_ammoniumloss[index].isotope_abundance.size() > fragment_isotope && y_ions[index].isotope_abundance.size() > comp_isotope) {
+                        fragment_isotope_abundance = b_ions_ammoniumloss[index].isotope_abundance[fragment_isotope] *
+                                                     y_ions[index].isotope_abundance[comp_isotope];
+                    }
 
                     b_ion_ammoniumloss_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
 
                     // y-ion water loss
-                    fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
-                                                 y_ions_waterloss[index].isotope_abundance[comp_isotope];
+                    fragment_isotope_abundance = 0;
+                    if (b_ions[index].isotope_abundance.size() > fragment_isotope && y_ions_waterloss[index].isotope_abundance.size() > comp_isotope) {
+                        fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
+                                                     y_ions_waterloss[index].isotope_abundance[comp_isotope];
+                    }
 
                     y_ion_waterloss_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
 
                     // y-ion ammonium loss
-                    fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
+                    fragment_isotope_abundance = 0;
+                    if (b_ions[index].isotope_abundance.size() > fragment_isotope && y_ions_ammoniumloss[index].isotope_abundance.size() > comp_isotope) {
+                        fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
                                                  y_ions_ammoniumloss[index].isotope_abundance[comp_isotope];
+                    }
 
                     y_ion_ammoniumloss_isotope_abundances[comp_isotope] = fragment_isotope_abundance;
 
@@ -266,8 +282,6 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                     // write to appropriate file: precursor isotope, fragment isotope
                     // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
                     int ratio_index = fragment_isotope - 1;
-
-
 
                     if (b_s[index] == num_sulfurs && b_se[index] == num_selenium && y_s[index] == num_c_sulfurs &&
                         y_se[index] == num_c_selenium) {
@@ -315,7 +329,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                                            std::log2(b_ion_ammoniumloss_isotope_abundances[fragment_isotope - 1]);
                             if (!isnan(ratio) && !isinf(ratio)) {
                                 outfiles[precursor_isotope][ratio_index] << ratio << "\t" <<
-                                                                         b_ions_ammoniumloss[index].calc_monoisotopic_mass()
+                                b_ions_ammoniumloss[index].calc_monoisotopic_mass()
                                                                          << "\t" <<
                                                                          p.calc_monoisotopic_mass() <<
                                                                          std::endl;
@@ -403,7 +417,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int 
                                                                          num_selenium, num_c_selenium);
 
             Peptide p = Peptide(random_sequence, 0);
-            if (p.calc_monoisotopic_mass() <= max_mass) {
+            if (p.calc_monoisotopic_mass() <= max_mass && p.calc_monoisotopic_mass() >= 6500) {
 
                 create_fragments(p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium);
 
