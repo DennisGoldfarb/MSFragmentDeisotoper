@@ -27,8 +27,8 @@ std::mt19937 gen(rd());
 std::uniform_int_distribution<> dis_AA(0, AMINO_ACIDS.length()-1);
 std::uniform_int_distribution<> dis_S(0, AMINO_ACIDS_SULFUR.length()-1);
 
-MolecularFormula waterloss("H2O1");
-MolecularFormula ammoniumloss("N1H3");
+MolecularFormula waterloss("H2,O1");
+MolecularFormula ammoniumloss("N1,H3");
 
 double dynamic_range = 5000;
 const int max_isotope = 30;
@@ -399,8 +399,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                     composition_smallest[elements::ELEMENTS::S] = num_sulfurs;
                     composition_smallest[elements::ELEMENTS::C] = num_carbons;
                     MolecularFormula loss = MolecularFormula(
-                            "Se" + std::to_string(num_selenium) + "S" + std::to_string(num_sulfurs) + "C" +
-                            std::to_string(num_sulfurs));
+                            "Se" + std::to_string(num_selenium) + ",S" + std::to_string(num_sulfurs) + ",C" +
+                            std::to_string(num_carbons));
 
                     std::vector<double> isotope_mz;
                     std::vector<double> isotope_abundance;
