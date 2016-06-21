@@ -426,6 +426,10 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                                                                           loss.get_monoisotopic_mass() << "\t"
                                                                           << p.calc_monoisotopic_mass() <<
                                                                           std::endl;
+                        std::cout << ratio << "\t" <<
+                                   loss.get_monoisotopic_mass() << "\t"
+                                   << p.calc_monoisotopic_mass() <<
+                                   std::endl;
                     }
                 }
             }
