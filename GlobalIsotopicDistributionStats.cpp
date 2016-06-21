@@ -435,6 +435,12 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
 
 void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_samples, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium, std::string border) {
 
+    if (border == "T") {
+        std::cout << "T!" << std::endl;
+    } else {
+        std::cout << "F!" << std::endl;
+    }
+
     std::ofstream outfiles[max_isotope][max_isotope-1];
 
     for (int precursor_isotope = 1; precursor_isotope < max_isotope; ++precursor_isotope) {
