@@ -422,7 +422,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
 
                     double ratio = fragment_isotope_abundance2 - fragment_isotope_abundance1;
                     if (!isnan(ratio) && !isinf(ratio)) {
-                        outfiles[precursor_isotope][fragment_isotope + 1] << ratio << "\t" <<
+                        outfiles[precursor_isotope][fragment_isotope] << ratio << "\t" <<
                                                                           loss.get_monoisotopic_mass() << "\t"
                                                                           << p.calc_monoisotopic_mass() <<
                                                                           std::endl;
