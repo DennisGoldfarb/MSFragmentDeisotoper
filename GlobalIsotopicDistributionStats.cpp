@@ -163,7 +163,7 @@ std::string create_random_peptide_sequence(int peptide_length, int num_sulfurs, 
     return random_peptide;
 }
 
-void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotope-1], int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
+void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotope-1], int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium, std::string border) {
     int num_fragments = p.length()-1;
     int most_abundant_isotope_index = p.get_most_abundant_isotope();
     double most_abundant_isotope_abundance = p.isotope_abundance[most_abundant_isotope_index];
@@ -390,7 +390,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
             }
 
             // create smallest carbon-only fragment
-            if (p.length() > 0) {
+            if (p.length() > 0 && border == "T") {
                 for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope-1; ++fragment_isotope) { // for each fragment isotope
                     // the smallest carbon-only fragment has fragment_isotope carbons
                     int num_carbons = 1 + fragment_isotope - 2 * num_sulfurs - 5 * num_selenium;
@@ -433,7 +433,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
     }
 }
 
-void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_samples, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium) {
+void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_samples, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium, std::string border) {
 
     std::ofstream outfiles[max_isotope][max_isotope-1];
 
@@ -460,12 +460,12 @@ void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int 
             Peptide p = Peptide(random_sequence, 0);
             if (p.calc_monoisotopic_mass() <= max_mass) {
 
-                create_fragments(p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium);
+                create_fragments(p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium, border);
 
                 if (!is_palindrome(random_sequence)) {
                     std::reverse(random_sequence.begin(), random_sequence.end());
                     Peptide reverse_p = Peptide(random_sequence, 0);
-                    create_fragments(reverse_p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium);
+                    create_fragments(reverse_p, outfiles, num_sulfurs, num_c_sulfurs, num_selenium, num_c_selenium, border);
                 }
             }
         }
@@ -486,7 +486,7 @@ int main(int argc, const char ** argv) {
     rlp.rlim_cur = 600;
     setrlimit(RLIMIT_NOFILE, &rlp);
 
-    sample_fragment_isotopic_ratios(argv[1], atof(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+    sample_fragment_isotopic_ratios(argv[1], atof(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), argv[8]);
 
     return 0;
 }
