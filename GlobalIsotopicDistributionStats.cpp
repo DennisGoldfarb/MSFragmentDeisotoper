@@ -30,7 +30,8 @@ std::uniform_int_distribution<> dis_S(0, AMINO_ACIDS_SULFUR.length()-1);
 MolecularFormula waterloss("H2,O1");
 MolecularFormula ammoniumloss("N1,H3");
 
-double dynamic_range = 5000;
+double dynamic_range = 20000;
+double dynamic_range_frag = 20000;
 const int max_isotope = 30;
 
 void get_precursor_isotopic_ratios(std::string path) {
@@ -206,8 +207,9 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                     double fragment_isotope_abundance = 0;
 
                     if (b_ions[index].isotope_abundance.size() > fragment_isotope && y_ions[index].isotope_abundance.size() > comp_isotope) {
-                        fragment_isotope_abundance = b_ions[index].isotope_abundance[fragment_isotope] *
-                                                     y_ions[index].isotope_abundance[comp_isotope];
+                        fragment_isotope_abundance = std::log2(b_ions[index].isotope_abundance[fragment_isotope]) +
+                                                     std::log2(y_ions[index].isotope_abundance[comp_isotope]) -
+                                                    std::log2(p.isotope_abundance[precursor_isotope]);
                     }
 
                     b_ion_isotope_abundances[fragment_isotope] = fragment_isotope_abundance;
@@ -216,8 +218,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                 }
 
                 // calculate minimum abundance for this fragment
-                double min_abundance_b = *std::max_element(b_ion_isotope_abundances.begin(), b_ion_isotope_abundances.end())/dynamic_range;
-                double min_abundance_y = *std::max_element(y_ion_isotope_abundances.begin(), y_ion_isotope_abundances.end())/dynamic_range;
+                double min_abundance_b = *std::max_element(b_ion_isotope_abundances.begin(), b_ion_isotope_abundances.end()) - std::log2(dynamic_range_frag);
+                double min_abundance_y = *std::max_element(y_ion_isotope_abundances.begin(), y_ion_isotope_abundances.end()) - std::log2(dynamic_range_frag);
 
                 for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
                     // write to appropriate file: precursor isotope, fragment isotope
@@ -233,7 +235,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                             y_ions[index].get_max_isotope() >= precursor_isotope - fragment_isotope) {
 
 
-                            double abundance = std::log2(b_ion_isotope_abundances[fragment_isotope]);
+                            double abundance = b_ion_isotope_abundances[fragment_isotope];
 
                             if (!isnan(abundance) && !isinf(abundance)) {
                                 outfiles[precursor_isotope][fragment_isotope] << abundance << "\t" <<
@@ -242,8 +244,6 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                                                                          std::endl;
                             }
                         }
-
-
                     }
 
                     if (y_s[index] == num_sulfurs && y_se[index] == num_selenium && b_s[index] == num_c_sulfurs &&
@@ -253,7 +253,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                             y_ions[index].get_max_isotope() >= fragment_isotope &&
                             b_ions[index].get_max_isotope() >= precursor_isotope - fragment_isotope) {
 
-                            double abundance = std::log2(y_ion_isotope_abundances[fragment_isotope]);
+                            double abundance = y_ion_isotope_abundances[fragment_isotope];
 
                             if (!isnan(abundance) && !isinf(abundance)) {
                                 outfiles[precursor_isotope][fragment_isotope] << abundance << "\t" <<
