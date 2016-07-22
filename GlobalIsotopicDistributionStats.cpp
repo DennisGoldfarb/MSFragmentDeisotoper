@@ -204,7 +204,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                 for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) { // for each fragment isotope
                     unsigned int comp_isotope = precursor_isotope - fragment_isotope;
 
-                    double fragment_isotope_abundance = 0;
+                    double fragment_isotope_abundance = std::log2(0);
 
                     if (b_ions[index].isotope_abundance.size() > fragment_isotope && y_ions[index].isotope_abundance.size() > comp_isotope) {
                         fragment_isotope_abundance = std::log2(b_ions[index].isotope_abundance[fragment_isotope]) +
@@ -222,14 +222,13 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                 double min_abundance_y = *std::max_element(y_ion_isotope_abundances.begin(), y_ion_isotope_abundances.end()) - std::log2(dynamic_range_frag);
 
                 for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
-                    // write to appropriate file: precursor isotope, fragment isotope
-                    // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
 
+                    // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
                     if (b_s[index] == num_sulfurs && b_se[index] == num_selenium && y_s[index] == num_c_sulfurs &&
                         y_se[index] == num_c_selenium) {
 
-                        // check that both isotopes are greater than the minimum abundance
-                        // check that both can have the number of isotopes
+                        // check that the isotope abundance is greater than the minimum abundance
+                        // check that both fragment and complementary fragment can have the number of isotopes
                         if (b_ion_isotope_abundances[fragment_isotope] > min_abundance_b &&
                             b_ions[index].get_max_isotope() >= fragment_isotope &&
                             y_ions[index].get_max_isotope() >= precursor_isotope - fragment_isotope) {
@@ -238,6 +237,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                             double abundance = b_ion_isotope_abundances[fragment_isotope];
 
                             if (!isnan(abundance) && !isinf(abundance)) {
+                                // write to appropriate file: precursor isotope, fragment isotope
                                 outfiles[precursor_isotope][fragment_isotope] << abundance << "\t" <<
                                                                          b_ions[index].calc_monoisotopic_mass() << "\t"
                                                                          << p.calc_monoisotopic_mass() <<
@@ -246,9 +246,12 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                         }
                     }
 
+                    // check if appropriate given constraints: #S in fragment, #S in complement, #Se in fragment, #Se in complement
                     if (y_s[index] == num_sulfurs && y_se[index] == num_selenium && b_s[index] == num_c_sulfurs &&
                         b_se[index] == num_c_selenium) {
 
+                        // check that the isotope abundance is greater than the minimum abundance
+                        // check that both fragment and complementary fragment can have the number of isotopes
                         if (y_ion_isotope_abundances[fragment_isotope] > min_abundance_b &&
                             y_ions[index].get_max_isotope() >= fragment_isotope &&
                             b_ions[index].get_max_isotope() >= precursor_isotope - fragment_isotope) {
@@ -256,6 +259,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                             double abundance = y_ion_isotope_abundances[fragment_isotope];
 
                             if (!isnan(abundance) && !isinf(abundance)) {
+                                // write to appropriate file: precursor isotope, fragment isotope
                                 outfiles[precursor_isotope][fragment_isotope] << abundance << "\t" <<
                                                                          y_ions[index].calc_monoisotopic_mass() << "\t"
                                                                          << p.calc_monoisotopic_mass() << std::endl;
@@ -273,8 +277,8 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
 
 void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int num_samples, int num_sulfurs, int num_c_sulfurs, int num_selenium, int num_c_selenium, std::string border) {
 
+    // create all output files and write header to each
     std::ofstream outfiles[max_isotope][max_isotope];
-
     for (int precursor_isotope = 1; precursor_isotope < max_isotope; ++precursor_isotope) {
         for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
             std::string filename = "Precursor" + std::to_string(precursor_isotope) + "_" +
@@ -310,6 +314,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int 
 
     }
 
+    // close all output files
     for (int precursor_isotope = 1; precursor_isotope < max_isotope; ++precursor_isotope) {
         for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
             outfiles[precursor_isotope][fragment_isotope].close();
@@ -318,8 +323,7 @@ void sample_fragment_isotopic_ratios(std::string base_path, float max_mass, int 
 }
 
 int main(int argc, const char ** argv) {
-    //get_precursor_isotopic_ratios(argv[1]);
-    //get_fragment_isotopic_ratios(argv[1]);
+    // Increase the maximum number of open files for this process. Was necessary for me.
     struct rlimit rlp;
     rlp.rlim_cur = 600;
     setrlimit(RLIMIT_NOFILE, &rlp);
