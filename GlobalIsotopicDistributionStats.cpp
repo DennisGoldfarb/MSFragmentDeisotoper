@@ -234,7 +234,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                             y_ions[index].get_max_isotope() >= precursor_isotope - fragment_isotope) {
 
 
-                            double abundance = b_ion_isotope_abundances[fragment_isotope];
+                            double abundance = std::pow(2,b_ion_isotope_abundances[fragment_isotope]);
 
                             if (!isnan(abundance) && !isinf(abundance)) {
                                 // write to appropriate file: precursor isotope, fragment isotope
@@ -256,7 +256,7 @@ void create_fragments(Peptide &p, std::ofstream outfiles[max_isotope][max_isotop
                             y_ions[index].get_max_isotope() >= fragment_isotope &&
                             b_ions[index].get_max_isotope() >= precursor_isotope - fragment_isotope) {
 
-                            double abundance = y_ion_isotope_abundances[fragment_isotope];
+                            double abundance = std::pow(2,y_ion_isotope_abundances[fragment_isotope]);
 
                             if (!isnan(abundance) && !isinf(abundance)) {
                                 // write to appropriate file: precursor isotope, fragment isotope
