@@ -14,7 +14,7 @@ set(SOURCE_FILES AveragineModel.cpp FragmentIsotopeCalculator.cpp FragmentIsotop
 set(MSFRAGMENTDEISOTOPER_SOURCE_FILES ${SOURCE_FILES} main.cpp SpectralMultiplexerMain.cpp)
 set(SPECTRALMULTIPLEXER_SOURCE_FILES ${SOURCE_FILES} SpectralMultiplexerMain.cpp AveragineModel.cpp AveragineModel.h)
 set(GLOBALISOTOPICDISTRIBUTIONSTATS_SOURCE_FILES ${SOURCE_FILES} GlobalIsotopicDistributionStats.cpp b_ion.cpp b_ion.h y_ion.cpp y_ion.h)
-set(MODELEVALUATOR_SOURCE_FILES ${SOURCE_FILES} ModelEvaluator.cpp Base64.h Base64.cpp TensorSplineModel.cpp TensorSplineModel.h FragmentIsotopeApproximator.cpp FragmentIsotopeApproximator.h kseq.h b_ion.h b_ion.cpp y_ion.h y_ion.cpp peptide.h peptide.cpp Histogram.cpp Histogram.h)
+set(MODELEVALUATOR_SOURCE_FILES ${SOURCE_FILES} ModelEvaluator.cpp Base64.h Base64.cpp TensorSplineModel.cpp TensorSplineModel.h FragmentIsotopeApproximator.cpp FragmentIsotopeApproximator.h kseq.h b_ion.h b_ion.cpp y_ion.h y_ion.cpp Peptide.h Peptide.cpp Histogram.cpp Histogram.h)
 
 #add_executable(MSFragmentDeisotoper ${MSFRAGMENTDEISOTOPER_SOURCE_FILES})
 #add_executable(SpectralMultiplexer ${SPECTRALMULTIPLEXER_SOURCE_FILES})
