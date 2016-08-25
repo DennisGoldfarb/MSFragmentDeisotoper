@@ -110,7 +110,7 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
 }
 
 
-void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* FIA) {
+void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* FIA, int job_id, int num_jobs) {
     Histogram* spline = new Histogram("Spline Residual Distribution", "residual", "log2(count)");
     Histogram* averagine_s = new Histogram("Averagine S Residual Distribution", "residual", "log2(count)");
     Histogram* averagine = new Histogram("Averagine Distribution", "residual", "log2(count)");
@@ -157,8 +157,20 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
     kseq_destroy(seq);
     gzclose(fp);
 
+    int num_test = std::ceil(peptides.size()/num_jobs);
+    int offset = (job_id-1)*num_test;
+
     for (auto itr = peptides.begin(); itr != peptides.end(); ++itr) {
-        test_peptide(*itr, FIA, spline, averagine_s, averagine);
+        if (i > offset && i < offset+num_test) {
+            test_peptide(*itr, FIA, spline, averagine_s, averagine);
+
+            if (i%1000 == 0) {
+                std::cout << "Number of peptides processed: " << i << std::endl;
+                spline->print_histogram();
+                averagine_s->print_histogram();
+                averagine->print_histogram();
+            }
+        }
 
         /*for (int ai = 0; ai < itr->size(); ai++) {
             char c = (*itr)[ai];
@@ -167,12 +179,6 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
         }*/
 
         i++;
-        if (i%10000 == 0) {
-            std::cout << "Number of peptides processed: " << i << std::endl;
-            spline->print_histogram();
-            averagine_s->print_histogram();
-            averagine->print_histogram();
-        }
     }
 
 
@@ -203,7 +209,7 @@ int main(int argc, char ** argv) {
 
     FragmentIsotopeApproximator* FIA = new FragmentIsotopeApproximator(argv[1], parser);
 
-    test_tryptic_peptides(argv[2], FIA);
+    test_tryptic_peptides(argv[2], FIA, atoi(argv[3]), atoi(argv[4]));
 
     delete parser;
     delete errHandler;
