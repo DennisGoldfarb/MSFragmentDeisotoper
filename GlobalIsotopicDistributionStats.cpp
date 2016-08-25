@@ -16,6 +16,7 @@
 #include "Peptide.h"
 #include "b_ion.h"
 #include "y_ion.h"
+#include "AveragineModel.h"
 
 
 static std::string AMINO_ACIDS = "ADEFGHIKLNPQRSTVWY";
@@ -127,6 +128,32 @@ void get_fragment_isotopic_ratios(std::string path) {
 
 }
 
+std::vector<std::vector<double>> calc_probabilities_averagine(double precursor_mass, double fragment_mass) {
+    AveragineModel averagine_model;
+    std::vector<std::vector<double>> precursor2fragment_probabilities;
+
+    std::vector<unsigned int> precursor_composition = averagine_model.estimate_composition(precursor_mass);
+    std::vector<unsigned int> fragment_composition = averagine_model.estimate_composition(fragment_mass);
+    std::vector<unsigned int> complement_composition = averagine_model.estimate_composition(precursor_mass-fragment_mass);
+
+    std::vector<double> frag_mz, frag_abundance, comp_frag_mz, comp_frag_abundance, precursor_mz, precursor_abundance;
+
+    mercury::mercury(frag_mz, frag_abundance, fragment_composition, 1, 1e-30);
+    mercury::mercury(comp_frag_mz, comp_frag_abundance, complement_composition, 1, 1e-30);
+    mercury::mercury(precursor_mz, precursor_abundance, precursor_composition, 1, 1e-30);
+
+    for (int precursor_isotope = 1; precursor_isotope < 18; ++precursor_isotope) {
+        std::vector<double> fragment_probabilities(precursor_isotope+1);
+        for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
+            int comp_isotope = precursor_isotope - fragment_isotope;
+            double probability = std::pow(2,std::log2(frag_abundance[fragment_isotope]) + std::log2(comp_frag_abundance[comp_isotope]) - std::log2(precursor_abundance[precursor_isotope]));
+            fragment_probabilities.push_back(probability);
+        }
+        precursor2fragment_probabilities.push_back(fragment_probabilities);
+    }
+
+    return precursor2fragment_probabilities;
+}
 
 bool is_palindrome(std::string &s) {
     return equal(s.begin(), s.begin() + s.size()/2, s.rbegin());

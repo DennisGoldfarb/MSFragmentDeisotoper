@@ -491,5 +491,6 @@ namespace mercury
 	int mercury(std::vector<double>& msa_mz, std::vector<double>& msa_abundance, const std::vector<unsigned int>& composition, const int charge, const double limit);
 
 	double get_average_mass(const std::vector<unsigned int>& composition);
+	double get_monoisotopic_mass(const std::vector<unsigned int>& composition);
 }
 #endif

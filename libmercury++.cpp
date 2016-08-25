@@ -2,10 +2,14 @@
 
 // declare private stuff
 namespace mercury {
-	void convolve(std::vector<double>& result_mz, std::vector<double>& result_ab, const std::vector<double>& mz1, const std::vector<double>& ab1, const std::vector<double>& mz2, const std::vector<double>& ab2);
-	void prune(std::vector<double>& mz, std::vector<double>& ab, const double limit);
+	void convolve(std::vector<double> &result_mz, std::vector<double> &result_ab, const std::vector<double> &mz1,
+				  const std::vector<double> &ab1, const std::vector<double> &mz2, const std::vector<double> &ab2);
+
+	void prune(std::vector<double> &mz, std::vector<double> &ab, const double limit);
 
 	double get_average_mass(const std::vector<unsigned int> &composition);
+
+	double get_monoisotopic_mass(const std::vector<unsigned int> &composition);
 }
 
 double mercury::get_average_mass(const std::vector<unsigned int> &composition) {
@@ -16,7 +20,16 @@ double mercury::get_average_mass(const std::vector<unsigned int> &composition) {
 	return mass;
 }
 
-void mercury::convolve(std::vector<double>& result_mz, std::vector<double>& result_ab, const std::vector<double>& mz1, const std::vector<double>& ab1, const std::vector<double>& mz2, const std::vector<double>& ab2)
+double mercury::get_monoisotopic_mass(const std::vector<unsigned int> &composition) {
+	double mass = 0;
+	for (int i = 0; i < composition.size(); ++i) {
+		mass += mercury::elemMasses[i][0] * composition[i];
+	}
+	return mass;
+}
+
+
+	void mercury::convolve(std::vector<double>& result_mz, std::vector<double>& result_ab, const std::vector<double>& mz1, const std::vector<double>& ab1, const std::vector<double>& mz2, const std::vector<double>& ab2)
 {
 	size_t n1 = mz1.size();
 	size_t n2 = mz2.size();
