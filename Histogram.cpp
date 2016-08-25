@@ -9,6 +9,8 @@ void Histogram::add_data(double d) {
         int bin = (int) floor(d/.01);
         if (bin2count.find(bin) == bin2count.end()) bin2count[bin] = 0;
         bin2count[bin]++;
+        num_points++;
+        total+=d;
     }
 }
 
@@ -25,8 +27,6 @@ void Histogram::print_histogram() {
 
     sort(keys.begin(), keys.end());
 
-    int tot = 0;
-
     for (auto itr = keys.begin(); itr != keys.end(); ++itr) {
         int bin = *itr;
         std::cout << bin << "\t";
@@ -36,9 +36,8 @@ void Histogram::print_histogram() {
                 std::cout << "*";
             }
             std::cout << " " << bin2count[bin];
-            tot += bin2count[bin];
         }
         std::cout << std::endl;
     }
-    std::cout << "y-axis: " << y_axis << " " << tot << std::endl;
+    std::cout << "y-axis: " << y_axis << " " << num_points << " " << total/num_points << std::endl;
 }

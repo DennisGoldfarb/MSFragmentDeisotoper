@@ -26,6 +26,9 @@ public:
 	std::string x_axis;
 	std::map<int,int> bin2count;
 
+	long num_points;
+	double total;
+
 	void add_data(double d);
 	void print_histogram();
 };

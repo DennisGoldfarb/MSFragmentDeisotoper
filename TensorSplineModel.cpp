@@ -172,10 +172,12 @@ float TensorSplineModel::evaluate_model(float pmass, float fmass) {
     float y2 = y*y;
     float y3 = y2*y;
 
-    float v = c[15] + c[14]*y + c[13]*y2 + c[12]*y3
-              + c[11]*x + c[10]*x*y + c[9]*x*y2 + c[8]*x*y3
-              + c[7]*x2 + c[6]*x2*y + c[5]*x2*y2 + c[4]*x2*y3
-              + c[3]*x3 + c[2]*x3*y + c[1]*x3*y2 + c[0]*x3*y3;
+    float v1 = c[15] + c[14]*y + c[13]*y2 + c[12]*y3;
+    float v2 = c[11]*x + c[10]*x*y + c[9]*x*y2 + c[8]*x*y3;
+    float v3 = c[7]*x2 + c[6]*x2*y + c[5]*x2*y2 + c[4]*x2*y3;
+    float v4 = c[3]*x3 + c[2]*x3*y + c[1]*x3*y2 + c[0]*x3*y3;
+
+    float v = v1+v2+v3+v4;
 
     return v;
 }
