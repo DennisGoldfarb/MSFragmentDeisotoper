@@ -17,7 +17,7 @@
 
 #include "TensorSplineModel.h"
 #include "FragmentIsotopeApproximator.h"
-#include "peptide.h"
+#include "Peptide.h"
 #include "b_ion.h"
 #include "y_ion.h"
 #include "Histogram.h"
