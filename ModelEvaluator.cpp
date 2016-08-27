@@ -76,13 +76,18 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     if (prob > 0) {
                         spline->add_data(std::abs(prob - abundance));
 
-                        prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+                        if (std::abs(prob - abundance) > .5) {
+                            std::cout << p.sequence << " " << index << " " << precursor_isotope << " " << fragment_isotope << " " << prob-abundance << std::endl;
+                            FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
+                        }
+
+                        /*prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
 
                         double diff = std::abs(prob - abundance);
                         averagine_s->add_data(diff);
 
                         prob = FIA->calc_probability_averagine(pi, fi, pm, fm);
-                        averagine->add_data(std::abs(prob - abundance));
+                        averagine->add_data(std::abs(prob - abundance));*/
                     }
                 }
                 abundance = std::pow(2, y_ion_isotope_abundances[fragment_isotope]);
@@ -95,13 +100,18 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
                     if (prob > 0) {
                         spline->add_data(std::abs(prob - abundance));
-                        prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+
+                        if (std::abs(prob - abundance) > .5) {
+                            std::cout << p.sequence << " " << index << " " << precursor_isotope << " " << fragment_isotope << " " << prob-abundance << std::endl;
+                            FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
+                        }
+                        /*prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
 
                         double diff = std::abs(prob - abundance);
                         averagine_s->add_data(diff);
 
                         prob = FIA->calc_probability_averagine(pi, fi, pm, fm);
-                        averagine->add_data(std::abs(prob - abundance));
+                        averagine->add_data(std::abs(prob - abundance));*/
                     }
                 }
             }
@@ -164,7 +174,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
         if (i > offset && i < offset+num_test) {
             test_peptide(*itr, FIA, spline, averagine_s, averagine);
 
-            if (i%1000 == 0) {
+            if (i%10000 == 0) {
                 std::cout << "Number of peptides processed: " << i << std::endl;
                 spline->print_histogram();
                 averagine_s->print_histogram();
