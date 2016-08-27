@@ -82,7 +82,7 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                         spline->add_data(std::abs(prob - abundance));
 
                         if (std::abs(prob - abundance) > 0.5) {
-                            std::cout << p.sequence << " " << index << " " << abundance << std::endl;
+                            std::cout << p.sequence << " " << index << " " << abundance << " b ion: " << b_ions[index].sequence << std::endl;
                             FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,true);
                         }
 
@@ -107,7 +107,7 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                         spline->add_data(std::abs(prob - abundance));
 
                         if (std::abs(prob - abundance) > 0.5) {
-                            std::cout << p.sequence << " " << index << " " << abundance << std::endl;
+                            std::cout << p.sequence << " " << index << " " << abundance << " y ion " << y_ions[index].sequence << std::endl;
                             FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,true);
                         }
                         /*prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
