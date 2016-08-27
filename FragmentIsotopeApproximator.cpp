@@ -62,7 +62,7 @@ FragmentIsotopeApproximator::FragmentIsotopeApproximator(char *infile, xercesc::
 float FragmentIsotopeApproximator::calc_probability_spline(unsigned int num_sulfur, unsigned int num_comp_sulfur,
                                                     unsigned int num_selenium, unsigned int num_comp_selenium,
                                                     unsigned int precursor_isotope, unsigned int fragment_isotope,
-                                                    float precursor_mass, float fragment_mass) {
+                                                    float precursor_mass, float fragment_mass, bool verbose) {
 
     if (precursor_isotope == 0 && fragment_isotope == 0) return 1;
 
@@ -77,9 +77,9 @@ float FragmentIsotopeApproximator::calc_probability_spline(unsigned int num_sulf
 
     TensorSplineModel* model = models[att];
     if (model == nullptr) {
-        return 0;
+        return -1;
     }
-    return model->evaluate_model(precursor_mass, fragment_mass);
+    return model->evaluate_model(precursor_mass, fragment_mass, verbose);
 }
 
 float FragmentIsotopeApproximator::calc_probability_averagine(unsigned int precursor_isotope, unsigned int fragment_isotope, float precursor_mass, float fragment_mass) {

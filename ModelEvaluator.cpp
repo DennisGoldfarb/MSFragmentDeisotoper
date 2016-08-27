@@ -25,6 +25,7 @@
 KSEQ_INIT(gzFile, gzread)
 
 void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, Histogram* spline, Histogram* averagine_s, Histogram* averagine) {
+
     Peptide p(peptide_seq, 0);
     int num_fragments = p.length() - 1;
     std::vector<b_ion> b_ions;
@@ -68,17 +69,21 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                 double abundance = std::pow(2, b_ion_isotope_abundances[fragment_isotope]);
                 if (!isnan(abundance) && !isinf(abundance) && index > 0) {
 
+                    if (peptide_seq == "DPYILVAAGSICFANMGVAILEPTLPIWMMQTMCSPK" && index == 35) {
+                        int x = 1;
+                    }
+
                     float pm = p.calc_monoisotopic_mass(), fm = b_ions[index].calc_monoisotopic_mass();
                     int pi = precursor_isotope, fi = fragment_isotope;
                     int S = b_s[index], CS = p.get_composition()[elements::ELEMENTS::S]-S;
 
-                    float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
-                    if (prob > 0) {
+                    float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
+                    if (prob != -1) {
                         spline->add_data(std::abs(prob - abundance));
 
-                        if (std::abs(prob - abundance) > .5) {
-                            std::cout << p.sequence << " " << index << " " << precursor_isotope << " " << fragment_isotope << " " << prob-abundance << std::endl;
-                            FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
+                        if (std::abs(prob - abundance) > 0.5) {
+                            std::cout << p.sequence << " " << index << " " << abundance << std::endl;
+                            FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,true);
                         }
 
                         /*prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
@@ -97,13 +102,13 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     int pi = precursor_isotope, fi = fragment_isotope;
                     int S = y_s[index], CS = p.get_composition()[elements::ELEMENTS::S]-S;
 
-                    float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
-                    if (prob > 0) {
+                    float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
+                    if (prob != -1) {
                         spline->add_data(std::abs(prob - abundance));
 
-                        if (std::abs(prob - abundance) > .5) {
-                            std::cout << p.sequence << " " << index << " " << precursor_isotope << " " << fragment_isotope << " " << prob-abundance << std::endl;
-                            FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm);
+                        if (std::abs(prob - abundance) > 0.5) {
+                            std::cout << p.sequence << " " << index << " " << abundance << std::endl;
+                            FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,true);
                         }
                         /*prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
 

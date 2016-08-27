@@ -33,7 +33,7 @@ public:
 
     float calc_probability_spline(unsigned int num_sulfur, unsigned int num_comp_sulfur, unsigned int num_selenium,
                            unsigned int num_comp_selenium, unsigned int precursor_isotope, unsigned int fragment_isotope,
-                           float precusor_mass, float fragment_mass);
+                           float precusor_mass, float fragment_mass, bool verbose);
 
     float calc_probability_averagine(unsigned int precursor_isotope, unsigned int fragment_isotope,
                                      float precursor_mass, float fragment_mass);

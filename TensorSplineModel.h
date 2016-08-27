@@ -71,7 +71,7 @@ public :
 
     ModelAttributes get_model_attributes();
 
-    float evaluate_model(float precursor_mass, float fragment_mass);
+    float evaluate_model(float precursor_mass, float fragment_mass, bool verbose);
 
     unsigned int num_sulfur;
     unsigned int num_comp_sulfur;

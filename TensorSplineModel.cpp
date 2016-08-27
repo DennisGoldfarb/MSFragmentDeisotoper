@@ -148,10 +148,10 @@ void TensorSplineModel::parse_xml_model(xercesc::DOMNode *current_node, xercesc:
     }
 }
 
-float TensorSplineModel::evaluate_model(float pmass, float fmass) {
-    if (fmass > pmass) return 0;
-    if (fmass <= breaks_fragment_mass[0] || fmass >= breaks_fragment_mass[num_breaks_fragment_mass-1]) return 0;
-    if (pmass <= breaks_precursor_mass[0] || pmass >= breaks_precursor_mass[num_breaks_precursor_mass-1]) return 0;
+float TensorSplineModel::evaluate_model(float pmass, float fmass, bool verbose) {
+    if (fmass >= pmass) return -1;
+    if (fmass <= breaks_fragment_mass[0] || fmass >= breaks_fragment_mass[num_breaks_fragment_mass-2]) return -1;
+    if (pmass <= breaks_precursor_mass[0] || pmass >= breaks_precursor_mass[num_breaks_precursor_mass-2]) return -1;
 
     // find index in precursor breaks
     int precursor_index = std::lower_bound(breaks_precursor_mass, breaks_precursor_mass+num_breaks_precursor_mass, pmass)-breaks_precursor_mass-1;
@@ -159,7 +159,7 @@ float TensorSplineModel::evaluate_model(float pmass, float fmass) {
     // find index in fragment breaks
     int fragment_index = std::lower_bound(breaks_fragment_mass, breaks_fragment_mass+num_breaks_fragment_mass, fmass)-breaks_fragment_mass-1;
 
-    if (breaks_fragment_mass[fragment_index] > breaks_precursor_mass[precursor_index]) return 0;
+    if (breaks_fragment_mass[fragment_index] > breaks_precursor_mass[precursor_index]) return -1;
 
     // do the math
     float* c = coefficients[precursor_index][fragment_index];
@@ -178,6 +178,23 @@ float TensorSplineModel::evaluate_model(float pmass, float fmass) {
     float v4 = c[3]*x3 + c[2]*x3*y + c[1]*x3*y2 + c[0]*x3*y3;
 
     float v = v1+v2+v3+v4;
+
+    if (verbose) {
+        std::cout << "S: " << num_sulfur << " CS: " << num_comp_sulfur << " Precursor isotope: "
+        << precursor_isotope << " Fragment isotope: " << fragment_isotope << std::endl << std::endl;
+
+        std::cout << "Precursor index: " << precursor_index << " Fragment index: "
+        << fragment_index << " precursor mass: " << pmass << " " << " fragment mass: " << fmass << std::endl << std::endl;
+
+        std::cout << "x: " << x << " y: " << y <<  "v1: " << v1 << " v2: " << v2
+        << " v3: " << v3 << " v4: " << v4 << " v: " << v << std::endl << std::endl;
+
+        for (int i = 0; i < 16; i++) {
+            std::cout << "C" << i << ": " << c[i] << "  \t";
+            if (i%4 == 3) std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
 
     return v;
 }
