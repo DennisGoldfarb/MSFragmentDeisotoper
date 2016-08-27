@@ -33,7 +33,7 @@ MolecularFormula ammoniumloss("N1,H3");
 
 double dynamic_range = 20000;
 double dynamic_range_frag = 20000;
-const int max_isotope = 30;
+const int max_isotope = 6;
 
 void get_precursor_isotopic_ratios(std::string path) {
     double limit = 1e-30;
