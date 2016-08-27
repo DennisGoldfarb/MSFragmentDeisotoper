@@ -169,7 +169,7 @@ float TensorSplineModel::evaluate_model(float pmass, float fmass, bool verbose) 
     // find index in fragment breaks
     int fragment_index = std::lower_bound(breaks_fragment_mass, breaks_fragment_mass+num_breaks_fragment_mass, fmass)-breaks_fragment_mass-1;
 
-    if (breaks_fragment_mass[fragment_index] > breaks_precursor_mass[precursor_index]) return -1;
+    if (breaks_fragment_mass[fragment_index] >= breaks_precursor_mass[precursor_index]) return -1;
 
     // do the math
     float* c = coefficients[precursor_index][fragment_index];
