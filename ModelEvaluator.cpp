@@ -43,7 +43,7 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
 
     }
 
-    for (int precursor_isotope = 1; precursor_isotope < 5; ++precursor_isotope) {
+    for (int precursor_isotope = 1; precursor_isotope < 6; ++precursor_isotope) {
         for (int index = 0; index < num_fragments; ++index) {
             std::vector<double> b_ion_isotope_abundances(precursor_isotope + 1);
             std::vector<double> y_ion_isotope_abundances(precursor_isotope + 1);
@@ -157,7 +157,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
 
                 start_i = end_i+1;
 
-                if (valid && peptide_seq.size() >= 4 && peptide_seq.size() <= 50) {
+                if (valid && peptide_seq.size() >= 4 && peptide_seq.size() <= 85) {
                     peptides.insert(peptide_seq);
                 }
             }
@@ -175,7 +175,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
         if (i >= offset && i < offset+num_test) {
             test_peptide(*itr, FIA, spline, averagine_s, averagine);
 
-            if (i%10000 == 0) {
+            if (i%1000 == 0) {
                 std::cout << "Number of peptides processed: " << i << std::endl;
                 spline->print_histogram();
                 averagine_s->print_histogram();
