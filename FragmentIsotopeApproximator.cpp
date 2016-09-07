@@ -185,3 +185,45 @@ float FragmentIsotopeApproximator::calc_expected_probability(std::vector<unsigne
 
     return probability;
 }
+
+float FragmentIsotopeApproximator::get_closest_spline_probability(float actual_prob, float precursor_mass, float fragment_mass,
+                                                                  bool verbose) {
+    TensorSplineModel* bestModel;
+    float bestDiff = 1;
+
+    for (auto model = models.begin(); model != models.end(); ++model) {
+        if (model->second != nullptr) {
+            float prob = model->second->evaluate_model(precursor_mass, fragment_mass, false);
+            if (prob != -1) {
+                float diff = std::abs(prob - actual_prob);
+                if (diff < bestDiff) {
+                    bestDiff = diff;
+                    bestModel = model->second;
+                }
+
+            }
+            if (model->second->num_sulfur > model->second->num_comp_sulfur) {
+                ModelAttributes att(model->second->num_comp_sulfur, model->second->num_sulfur,
+                                    model->second->num_comp_selenium, model->second->num_selenium,
+                                    model->second->precursor_isotope, model->second->precursor_isotope-model->second->fragment_isotope);
+
+                float prob = model->second->evaluate_model(precursor_mass, precursor_mass - fragment_mass, false);
+                if (prob != -1) {
+                    float diff = std::abs(prob - actual_prob);
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        bestModel = model->second;
+                    }
+
+                }
+            }
+        }
+    }
+
+    if (verbose) {
+        std::cout << bestModel->num_sulfur << " " << bestModel->num_comp_sulfur << " " <<
+        bestModel->precursor_isotope << " " << bestModel->fragment_isotope << std::endl;
+    }
+
+    return bestDiff;
+}

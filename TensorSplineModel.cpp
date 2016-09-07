@@ -90,9 +90,9 @@ void TensorSplineModel::parse_coefficients(xercesc::DOMNode* current_node) {
     coefficients = new float**[num_breaks_precursor_mass];
     int max_j = 0;
     for (int i = 0; i < num_breaks_precursor_mass; ++i) {
-        for (; max_j < num_breaks_fragment_mass && breaks_fragment_mass[max_j] <= breaks_precursor_mass[i]; ++max_j) {}
-        coefficients[i] = new float*[max_j];
-        for (int j = 0; j < max_j; ++j) {
+        for (; max_j < num_breaks_fragment_mass && breaks_fragment_mass[max_j] < breaks_precursor_mass[i]; ++max_j) {}
+        coefficients[i] = new float*[max_j+1];
+        for (int j = 0; j <= max_j; ++j) {
             coefficients[i][j] = new float[num_coefficients];
         }
     }
@@ -112,14 +112,10 @@ void TensorSplineModel::parse_coefficients(xercesc::DOMNode* current_node) {
             f_index++;
             fragment_mass = breaks_fragment_mass[f_index];
 
-            if (fragment_mass >= precursor_mass || f_index == num_breaks_fragment_mass) {
-                last_f_index = f_index;
+            if (fragment_mass > precursor_mass || f_index == num_breaks_fragment_mass) {
                 f_index=0;
                 p_index++;
                 precursor_mass = breaks_precursor_mass[p_index];
-
-                // get index of largest fragment break < precursor mass
-                for (; last_f_index < num_breaks_fragment_mass && breaks_fragment_mass[last_f_index] < precursor_mass; last_f_index++) {}
             }
 
             /*std::cout << std::endl << "Precursor mass: " << breaks_precursor_mass[p_index]
@@ -128,6 +124,12 @@ void TensorSplineModel::parse_coefficients(xercesc::DOMNode* current_node) {
         }
 
         coefficients[p_index][f_index][c_index] = *(float*) (decoded+(i*sizeof(float)));
+        /*if (std::isnan(coefficients[p_index][f_index][c_index]) && precursor_isotope == 1) {
+            std::cout << "--MODEL DESCRIPTION--" << std::endl;
+            std::cout << "S: " << num_sulfur << " CS: " << num_comp_sulfur << " Precursor isotope: "
+                        << precursor_isotope << " Fragment isotope: " << fragment_isotope << std::endl;
+            std::cout << p_index << " " << f_index << " " << c_index << std::endl;
+        }*/
 
         /*std::cout << "C" << c_index << ": " << coefficients[p_index][f_index][c_index] << "  \t";*/
     }
@@ -169,7 +171,7 @@ float TensorSplineModel::evaluate_model(float pmass, float fmass, bool verbose) 
     // find index in fragment breaks
     int fragment_index = std::lower_bound(breaks_fragment_mass, breaks_fragment_mass+num_breaks_fragment_mass, fmass)-breaks_fragment_mass-1;
 
-    if (breaks_fragment_mass[fragment_index] >= breaks_precursor_mass[precursor_index]) return -1;
+    //if (breaks_fragment_mass[fragment_index] >= breaks_precursor_mass[precursor_index+1]) return -1;
 
     // do the math
     float* c = coefficients[precursor_index][fragment_index];
@@ -196,7 +198,7 @@ float TensorSplineModel::evaluate_model(float pmass, float fmass, bool verbose) 
         std::cout << "Precursor index: " << precursor_index << " Fragment index: "
         << fragment_index << " precursor mass: " << pmass << " " << " fragment mass: " << fmass << std::endl << std::endl;
 
-        std::cout << "x: " << x << " y: " << y <<  "v1: " << v1 << " v2: " << v2
+        std::cout << "x: " << x << " y: " << y <<  " v1: " << v1 << " v2: " << v2
         << " v3: " << v3 << " v4: " << v4 << " v: " << v << std::endl << std::endl;
 
         for (int i = 0; i < 16; i++) {

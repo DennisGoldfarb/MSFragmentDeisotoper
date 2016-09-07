@@ -81,10 +81,17 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     if (prob != -1) {
                         spline->add_data(std::abs(prob - abundance));
 
-                        /*if (std::abs(prob - abundance) > 0.5) {
+                        //std::cout << S << " " << CS << " " << pi << " " << fi << std::endl;
+                        //float best_diff = FIA->get_closest_spline_probability(abundance, pm, fm, false);
+                        //spline->add_data(best_diff-std::abs(prob - abundance));
+
+                        //std::cout << abundance << " " << prob << " " << std::abs(prob - abundance) << " " << closest_prob << std::endl;
+
+
+                        if (std::abs(prob - abundance) > 0.2) {
                             std::cout << p.sequence << " " << index << " " << abundance << " b ion: " << b_ions[index].sequence << std::endl;
                             FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,true);
-                        }*/
+                        }
 
                         prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
 
@@ -175,12 +182,12 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
         if (i >= offset && i < offset+num_test) {
             test_peptide(*itr, FIA, spline, averagine_s, averagine);
 
-            if (i%1000 == 0) {
+           /*if (i%1000 == 0) {
                 std::cout << "Number of peptides processed: " << i << std::endl;
                 spline->print_histogram();
                 averagine_s->print_histogram();
                 averagine->print_histogram();
-            }
+            }*/
         }
 
         /*for (int ai = 0; ai < itr->size(); ai++) {
@@ -219,6 +226,9 @@ int main(int argc, char ** argv) {
     parser->setErrorHandler(errHandler);
 
     FragmentIsotopeApproximator* FIA = new FragmentIsotopeApproximator(argv[1], parser);
+
+    //std::cout << FIA->calc_probability_spline(1,0,0,0,1,0,200,180,true) << std::endl;
+    //std::cout << FIA->calc_probability_sulfur_corrected_averagine(1,0,1,0,2000,1500) << std::endl;
 
     test_tryptic_peptides(argv[2], FIA, atoi(argv[3]), atoi(argv[4]));
 

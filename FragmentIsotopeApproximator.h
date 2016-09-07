@@ -35,6 +35,9 @@ public:
                            unsigned int num_comp_selenium, unsigned int precursor_isotope, unsigned int fragment_isotope,
                            float precusor_mass, float fragment_mass, bool verbose);
 
+    float get_closest_spline_probability(float actual_prob, float precusor_mass, float fragment_mass, bool verbose);
+
+
     float calc_probability_averagine(unsigned int precursor_isotope, unsigned int fragment_isotope,
                                      float precursor_mass, float fragment_mass);
 
