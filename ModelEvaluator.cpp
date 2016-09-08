@@ -27,8 +27,9 @@ KSEQ_INIT(gzFile, gzread)
 
 
 void calc_differences(float prob_spline, float prob_averagineS, float prob_averagine, float abundance, std::vector<std::pair<float,ModelAttributes>>& all_probs,
-                      FragmentIsotopeApproximator* FIA, Histogram* spline, Histogram* averagine_s,
-                      Histogram* averagine, Histogram* num_better_prob, Histogram* best_prob_diff, float& distance_b) {
+                      FragmentIsotopeApproximator* FIA, Histogram* spline, Histogram* averagine_s, Histogram* averagine,
+                      Histogram* num_better_prob, Histogram* best_prob_diff, Histogram* num_better_prob_wrong_precursor,
+                      float& distance_b, int precursor_isotope) {
     if (prob_spline != -1) {
         double diff = std::abs(prob_spline - abundance);
         spline->add_data(diff);
@@ -41,6 +42,9 @@ void calc_differences(float prob_spline, float prob_averagineS, float prob_avera
             num_better += other_model_diff <= diff;
             best_diff = std::min(std::abs(v.first-abundance), best_diff);
 
+            if (v.second.precursor_isotope != precursor_isotope) {
+                num_better += other_model_diff <= diff;
+            }
         }
 
         num_better_prob->add_data(num_better);
@@ -51,7 +55,8 @@ void calc_differences(float prob_spline, float prob_averagineS, float prob_avera
 }
 
 void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, Histogram* spline, Histogram* averagine_s,
-                  Histogram* averagine, Histogram* statistical_distance, Histogram* num_better_prob, Histogram* best_prob_diff) {
+                  Histogram* averagine, Histogram* statistical_distance, Histogram* num_better_prob, Histogram* best_prob_diff,
+                  Histogram* num_better_prob_wrong_precursor) {
 
     Peptide p(peptide_seq, 0);
     int num_fragments = p.length() - 1;
@@ -106,12 +111,13 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     int S = b_s[index], CS = p.get_composition()[elements::ELEMENTS::S]-S;
 
                     float prob_spline = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
-                    float prob_averagineS = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
-                    float prob_averagine = FIA->calc_probability_averagine(pi, fi, pm, fm);
+                    float prob_averagineS = 1;//FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+                    float prob_averagine = 1;//FIA->calc_probability_averagine(pi, fi, pm, fm);
                     std::vector<std::pair<float,ModelAttributes>> all_probs = FIA->get_all_spline_probabilities(pm,fm);
 
                     calc_differences(prob_spline, prob_averagineS, prob_averagine, abundance, all_probs,
-                                     FIA, spline, averagine_s, averagine, num_better_prob, best_prob_diff, distance_b);
+                                     FIA, spline, averagine_s, averagine, num_better_prob, best_prob_diff,
+                                     num_better_prob_wrong_precursor, distance_b, precursor_isotope);
                 }
                 abundance = std::pow(2, y_ion_isotope_abundances[fragment_isotope]);
                 if (!isnan(abundance) && !isinf(abundance) && index > 0) {
@@ -121,12 +127,13 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     int S = y_s[index], CS = p.get_composition()[elements::ELEMENTS::S]-S;
 
                     float prob_spline = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
-                    float prob_averagineS = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
-                    float prob_averagine = FIA->calc_probability_averagine(pi, fi, pm, fm);
+                    float prob_averagineS = 1;//FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+                    float prob_averagine = 1;//FIA->calc_probability_averagine(pi, fi, pm, fm);
                     std::vector<std::pair<float,ModelAttributes>> all_probs = FIA->get_all_spline_probabilities(pm,fm);
 
                     calc_differences(prob_spline, prob_averagineS, prob_averagine, abundance, all_probs,
-                                     FIA, spline, averagine_s, averagine, num_better_prob, best_prob_diff, distance_y);
+                                     FIA, spline, averagine_s, averagine, num_better_prob, best_prob_diff,
+                                     num_better_prob_wrong_precursor, distance_y, precursor_isotope);
 
                 }
             }
@@ -146,6 +153,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
     Histogram* averagine = new Histogram("Averagine Distribution", "residual", "log2(count)", 0.01);
     Histogram* statistical_distance = new Histogram("Statistical Distance Distribution", "Statistical Distance", "log2(count)", 0.01);
     Histogram* num_better_prob = new Histogram("Number of Better Probabilities Distribution", "# of models", "log2(count)", 1);
+    Histogram* num_better_prob_wrong_precursor = new Histogram("Number of Better Probabilities with Wrong Precursor Distribution", "# of models", "log2(count)", 1);
     Histogram* best_prob_diff = new Histogram("Correct - Best Model Probability Distribution", "Difference", "log2(count)", 0.01);
 
     gzFile fp;
@@ -195,7 +203,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
 
     for (auto itr = peptides.begin(); itr != peptides.end(); ++itr) {
         if (i >= offset && i < offset+num_test) {
-            test_peptide(*itr, FIA, spline, averagine_s, averagine, statistical_distance, num_better_prob, best_prob_diff);
+            test_peptide(*itr, FIA, spline, averagine_s, averagine, statistical_distance, num_better_prob, best_prob_diff, num_better_prob_wrong_precursor);
 
            /*if (i%1000 == 0) {
                 std::cout << "Number of peptides processed: " << i << std::endl;
@@ -222,6 +230,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
     statistical_distance->print_histogram();
     num_better_prob->print_histogram();
     best_prob_diff->print_histogram();
+    num_better_prob_wrong_precursor->print_histogram();
 
 }
 
