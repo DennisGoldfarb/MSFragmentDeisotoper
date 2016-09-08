@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
+#include <numeric>
 
 #include <zlib.h>
 
@@ -11,7 +13,6 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/sax/HandlerBase.hpp>
-#include <unordered_set>
 
 #include "kseq.h"
 
@@ -24,8 +25,30 @@
 
 KSEQ_INIT(gzFile, gzread)
 
+
+void calc_differences(float prob_spline, float prob_averagineS, float prob_averagine, float abundance, std::vector<float>& all_probs,
+                      FragmentIsotopeApproximator* FIA, Histogram* spline, Histogram* averagine_s,
+                      Histogram* averagine, Histogram* num_better_prob, float& distance_b) {
+    if (prob_spline != -1) {
+        double diff = std::abs(prob_spline - abundance);
+        spline->add_data(diff);
+        distance_b += diff;
+        //float best_diff = FIA->get_closest_spline_probability(abundance, pm, fm, false);
+        //spline->add_data(best_diff-std::abs(prob - abundance));
+        int num_better = -1;
+        for (float v : all_probs) {
+            num_better += std::abs(v-prob_spline) <= diff;
+        }
+        num_better_prob->add_data(num_better);
+
+        averagine_s->add_data(std::abs(prob_averagineS - abundance));
+
+        averagine->add_data(std::abs(prob_averagine - abundance));
+    }
+}
+
 void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, Histogram* spline, Histogram* averagine_s,
-                  Histogram* averagine, Histogram* statistical_distance) {
+                  Histogram* averagine, Histogram* statistical_distance, Histogram* num_better_prob) {
 
     Peptide p(peptide_seq, 0);
     int num_fragments = p.length() - 1;
@@ -66,8 +89,10 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
 
             }
 
-            double distance_y = 0;
-            double distance_b = 0;
+            float distance_y = 0;
+            float distance_b = 0;
+            std::vector<double> distances_y;
+            std::vector<double> distances_b;
 
             for (int fragment_isotope = 0; fragment_isotope <= precursor_isotope; ++fragment_isotope) {
                 double abundance = std::pow(2, b_ion_isotope_abundances[fragment_isotope]);
@@ -77,21 +102,13 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     int pi = precursor_isotope, fi = fragment_isotope;
                     int S = b_s[index], CS = p.get_composition()[elements::ELEMENTS::S]-S;
 
-                    float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
-                    if (prob != -1) {
-                        spline->add_data(std::abs(prob - abundance));
-                        distance_b += std::abs(prob - abundance);
-                        //float best_diff = FIA->get_closest_spline_probability(abundance, pm, fm, false);
-                        //spline->add_data(best_diff-std::abs(prob - abundance));
+                    float prob_spline = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
+                    float prob_averagineS = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+                    float prob_averagine = FIA->calc_probability_averagine(pi, fi, pm, fm);
+                    std::vector<float> all_probs = FIA->get_all_spline_probabilities(pm,fm);
 
-                        prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
-
-                        double diff = std::abs(prob - abundance);
-                        averagine_s->add_data(diff);
-
-                        prob = FIA->calc_probability_averagine(pi, fi, pm, fm);
-                        averagine->add_data(std::abs(prob - abundance));
-                    }
+                    calc_differences(prob_spline, prob_averagineS, prob_averagine, abundance, all_probs,
+                            FIA, spline, averagine_s, averagine, num_better_prob, distance_b);
                 }
                 abundance = std::pow(2, y_ion_isotope_abundances[fragment_isotope]);
                 if (!isnan(abundance) && !isinf(abundance) && index > 0) {
@@ -100,33 +117,32 @@ void test_peptide(std::string peptide_seq, FragmentIsotopeApproximator* FIA, His
                     int pi = precursor_isotope, fi = fragment_isotope;
                     int S = y_s[index], CS = p.get_composition()[elements::ELEMENTS::S]-S;
 
-                    float prob = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
-                    if (prob != -1) {
-                        spline->add_data(std::abs(prob - abundance));
-                        distance_y += std::abs(prob - abundance);
+                    float prob_spline = FIA->calc_probability_spline(S,CS,0,0,pi,fi,pm,fm,false);
+                    float prob_averagineS = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+                    float prob_averagine = FIA->calc_probability_averagine(pi, fi, pm, fm);
+                    std::vector<float> all_probs = FIA->get_all_spline_probabilities(pm,fm);
 
-                        prob = FIA->calc_probability_sulfur_corrected_averagine(S, CS, pi, fi, pm, fm);
+                    calc_differences(prob_spline, prob_averagineS, prob_averagine, abundance, all_probs,
+                                     FIA, spline, averagine_s, averagine, num_better_prob, distance_y);
 
-                        double diff = std::abs(prob - abundance);
-                        averagine_s->add_data(diff);
-
-                        prob = FIA->calc_probability_averagine(pi, fi, pm, fm);
-                        averagine->add_data(std::abs(prob - abundance));
-                    }
                 }
             }
-            statistical_distance->add_data(distance_b);
-            statistical_distance->add_data(distance_y);
+
+            if (distance_b != 0 && distance_y != 0) {
+                statistical_distance->add_data(distance_b);
+                statistical_distance->add_data(distance_y);
+            }
         }
     }
 }
 
 
 void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* FIA, int job_id, int num_jobs) {
-    Histogram* spline = new Histogram("Spline Residual Distribution", "residual", "log2(count)");
-    Histogram* averagine_s = new Histogram("Averagine S Residual Distribution", "residual", "log2(count)");
-    Histogram* averagine = new Histogram("Averagine Distribution", "residual", "log2(count)");
-    Histogram* statistical_distance = new Histogram("Statistical Distance Distribution", "Statistical Distance", "log2(count)");
+    Histogram* spline = new Histogram("Spline Residual Distribution", "residual", "log2(count)", 0.01);
+    Histogram* averagine_s = new Histogram("Averagine S Residual Distribution", "residual", "log2(count)", 0.01);
+    Histogram* averagine = new Histogram("Averagine Distribution", "residual", "log2(count)", 0.01);
+    Histogram* statistical_distance = new Histogram("Statistical Distance Distribution", "Statistical Distance", "log2(count)", 0.01);
+    Histogram* num_better_prob = new Histogram("Number of Better Porbabilities Distribution", "# of models", "log2(count)", 1);
 
     gzFile fp;
     fp = gzopen(path_FASTA, "r");
@@ -175,7 +191,7 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
 
     for (auto itr = peptides.begin(); itr != peptides.end(); ++itr) {
         if (i >= offset && i < offset+num_test) {
-            test_peptide(*itr, FIA, spline, averagine_s, averagine, statistical_distance);
+            test_peptide(*itr, FIA, spline, averagine_s, averagine, statistical_distance, num_better_prob);
 
            /*if (i%1000 == 0) {
                 std::cout << "Number of peptides processed: " << i << std::endl;
@@ -200,11 +216,8 @@ void test_tryptic_peptides(const char* path_FASTA, FragmentIsotopeApproximator* 
     averagine_s->print_histogram();
     averagine->print_histogram();
     statistical_distance->print_histogram();
+    num_better_prob->print_histogram();
 
-
-    for (auto c = char2count.begin(); c != char2count.end(); ++c) {
-        std::cout << c->first << " " << c->second << std::endl;
-    }
 }
 
 int main(int argc, char ** argv) {

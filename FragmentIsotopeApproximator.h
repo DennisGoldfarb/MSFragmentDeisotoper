@@ -37,6 +37,7 @@ public:
 
     float get_closest_spline_probability(float actual_prob, float precusor_mass, float fragment_mass, bool verbose);
 
+    std::vector<float> get_all_spline_probabilities(float precusor_mass, float fragment_mass);
 
     float calc_probability_averagine(unsigned int precursor_isotope, unsigned int fragment_isotope,
                                      float precursor_mass, float fragment_mass);
@@ -49,6 +50,8 @@ public:
     float calc_probability_sulfur_corrected_averagine(unsigned int num_sulfur, unsigned int num_comp_sulfur,
                                                       unsigned int precursor_isotope, unsigned int fragment_isotope,
                                                       float precursor_mass, float fragment_mass, float precursor_probability);
+
+    int get_num_models();
 
 
     std::map<ModelAttributes, TensorSplineModel*> models;

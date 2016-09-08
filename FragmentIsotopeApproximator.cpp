@@ -227,3 +227,33 @@ float FragmentIsotopeApproximator::get_closest_spline_probability(float actual_p
 
     return bestDiff;
 }
+
+int FragmentIsotopeApproximator::get_num_models() {
+    return models.size();
+}
+
+std::vector<float> FragmentIsotopeApproximator::get_all_spline_probabilities(float precursor_mass, float fragment_mass) {
+    std::vector<float> probabilities;
+
+    for (auto model = models.begin(); model != models.end(); ++model) {
+        if (model->second != nullptr) {
+            float prob = model->second->evaluate_model(precursor_mass, fragment_mass, false);
+            if (prob != -1) {
+                probabilities.push_back(prob);
+            }
+            if (model->second->num_sulfur > model->second->num_comp_sulfur) {
+
+                ModelAttributes att(model->second->num_comp_sulfur, model->second->num_sulfur,
+                                    model->second->num_comp_selenium, model->second->num_selenium,
+                                    model->second->precursor_isotope, model->second->precursor_isotope-model->second->fragment_isotope);
+
+                float prob = model->second->evaluate_model(precursor_mass, precursor_mass - fragment_mass, false);
+                if (prob != -1) {
+                    probabilities.push_back(prob);
+                }
+            }
+        }
+    }
+
+    return probabilities;
+}

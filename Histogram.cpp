@@ -5,7 +5,7 @@
 #include "Histogram.h"
 
 void Histogram::add_data(double d) {
-    int bin = (int) floor(d/.01);
+    int bin = (int) floor(d/bin_size);
     if (bin2count.find(bin) == bin2count.end()) bin2count[bin] = 0;
     bin2count[bin]++;
     num_points++;
