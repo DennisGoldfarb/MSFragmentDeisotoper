@@ -36,6 +36,7 @@ void calc_differences(float prob_spline, float prob_averagineS, float prob_avera
         distance_b += diff;
 
         int num_better = -1;
+        int num_better_diff = 0;
         float best_diff = diff;
         for (std::pair<float,ModelAttributes> &v : all_probs) {
             float other_model_diff = std::abs(v.first-prob_spline);
@@ -43,11 +44,12 @@ void calc_differences(float prob_spline, float prob_averagineS, float prob_avera
             best_diff = std::min(std::abs(v.first-abundance), best_diff);
 
             if (v.second.precursor_isotope != precursor_isotope) {
-                num_better += other_model_diff <= diff;
+                num_better_diff += other_model_diff <= diff;
             }
         }
 
         num_better_prob->add_data(num_better);
+        num_better_prob_wrong_precursor->add_data(num_better_diff);
         best_prob_diff->add_data(std::abs(best_diff - diff));
         averagine_s->add_data(std::abs(prob_averagineS - abundance));
         averagine->add_data(std::abs(prob_averagine - abundance));
