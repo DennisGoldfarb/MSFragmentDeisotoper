@@ -101,10 +101,6 @@ void TensorSplineModel::parse_coefficients(xercesc::DOMNode* current_node) {
     int p_index=0, f_index=-1, c_index=0, last_f_index=0;
     float precursor_mass = breaks_precursor_mass[p_index], fragment_mass;
 
-    /*std::cout << "--MODEL DESCRIPTION--" << std::endl;
-    std::cout << "S: " << num_sulfur << " CS: " << num_comp_sulfur << " Precursor isotope: "
-    << precursor_isotope << " Fragment isotope: " << fragment_isotope << std::endl;*/
-
     for (int i = 0; i < numElements; i++) {
         c_index = i%num_coefficients;
 
@@ -117,21 +113,9 @@ void TensorSplineModel::parse_coefficients(xercesc::DOMNode* current_node) {
                 p_index++;
                 precursor_mass = breaks_precursor_mass[p_index];
             }
-
-            /*std::cout << std::endl << "Precursor mass: " << breaks_precursor_mass[p_index]
-            << " Fragment mass: " << fragment_mass << " Precursor index: " << p_index
-            << " Fragment index: " << f_index << std::endl;*/
         }
 
         coefficients[p_index][f_index][c_index] = *(float*) (decoded+(i*sizeof(float)));
-        /*if (std::isnan(coefficients[p_index][f_index][c_index]) && precursor_isotope == 1) {
-            std::cout << "--MODEL DESCRIPTION--" << std::endl;
-            std::cout << "S: " << num_sulfur << " CS: " << num_comp_sulfur << " Precursor isotope: "
-                        << precursor_isotope << " Fragment isotope: " << fragment_isotope << std::endl;
-            std::cout << p_index << " " << f_index << " " << c_index << std::endl;
-        }*/
-
-        /*std::cout << "C" << c_index << ": " << coefficients[p_index][f_index][c_index] << "  \t";*/
     }
 
 }

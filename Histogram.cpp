@@ -5,14 +5,11 @@
 #include "Histogram.h"
 
 void Histogram::add_data(double d) {
-    //if (!std::isinf(d) && !std::isnan(d)) {
-    //if (d > 0 && !std::isinf(d)) {
-        int bin = (int) floor(d/.01);
-        if (bin2count.find(bin) == bin2count.end()) bin2count[bin] = 0;
-        bin2count[bin]++;
-        num_points++;
-        total+=d;
-    //}
+    int bin = (int) floor(d/.01);
+    if (bin2count.find(bin) == bin2count.end()) bin2count[bin] = 0;
+    bin2count[bin]++;
+    num_points++;
+    total+=d;
 }
 
 void Histogram::print_histogram() {
