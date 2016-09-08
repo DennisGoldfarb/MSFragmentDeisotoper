@@ -232,14 +232,14 @@ int FragmentIsotopeApproximator::get_num_models() {
     return models.size();
 }
 
-std::vector<float> FragmentIsotopeApproximator::get_all_spline_probabilities(float precursor_mass, float fragment_mass) {
-    std::vector<float> probabilities;
+std::vector<std::pair<float,ModelAttributes>> FragmentIsotopeApproximator::get_all_spline_probabilities(float precursor_mass, float fragment_mass) {
+    std::vector<std::pair<float,ModelAttributes>> probabilities;
 
     for (auto model = models.begin(); model != models.end(); ++model) {
         if (model->second != nullptr) {
             float prob = model->second->evaluate_model(precursor_mass, fragment_mass, false);
             if (prob != -1) {
-                probabilities.push_back(prob);
+                probabilities.push_back(std::make_pair(prob,model->second->get_model_attributes()));
             }
             if (model->second->num_sulfur > model->second->num_comp_sulfur) {
 
@@ -249,7 +249,7 @@ std::vector<float> FragmentIsotopeApproximator::get_all_spline_probabilities(flo
 
                 float prob = model->second->evaluate_model(precursor_mass, precursor_mass - fragment_mass, false);
                 if (prob != -1) {
-                    probabilities.push_back(prob);
+                    probabilities.push_back(std::make_pair(prob,att));
                 }
             }
         }
